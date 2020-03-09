@@ -12,7 +12,7 @@
 bin/
 gen/
 out/
-.idea/
+#.idea/
 
 # Gradle files
 .gradle/
@@ -35,13 +35,13 @@ captures/
 
 # IntelliJ (IDE配置文件)
 *.iml
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/gradle.xml
-.idea/assetWizardSettings.xml
-.idea/dictionaries
-.idea/libraries
-.idea/caches
+#.idea/workspace.xml
+#.idea/tasks.xml
+#.idea/gradle.xml
+#.idea/assetWizardSettings.xml
+#.idea/dictionaries
+#.idea/libraries
+#.idea/caches
 
 # 密钥储存库文件
 # 如果您不想检查密钥库文件，请取消注释以下行
