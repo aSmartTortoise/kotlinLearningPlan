@@ -46,7 +46,7 @@ object DESEncryption {//object 表明该类是单例的
 
 fun main() {
 
-    var keyStr: String = "123456789"
+    var keyStr: String = "12345671901234"
     var originalContent: String = "I LOVE YOU"
 
     var encryption = DESEncryption.encryption(keyStr, originalContent)
