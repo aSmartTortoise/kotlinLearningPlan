@@ -15,6 +15,16 @@ object RSACrypt {
     val transformation: String = "RSA"
     val ENCRYPT_MAX_SIZE: Int = 117
     val DECRYPT_MAX_SIZE: Int = 128
+    var keyPair: KeyPair = KeyPairGenerator.getInstance("RSA").genKeyPair()
+
+    fun getPrivateKey(): PrivateKey {
+        return keyPair.private
+    }
+
+    fun getPublicKey(): PublicKey {
+        return keyPair.public
+    }
+
     /**
      * 私钥加密
      */
