@@ -18,16 +18,16 @@ abstract class BaseActivity : AppCompatActivity(), AnkoLogger {
 
     abstract fun getLayoutId(): Int
 
-    protected fun initView() {
+    protected open fun initView() {
     }
 
-    protected fun initListener() {
+    protected open fun initListener() {
     }
 
-    protected fun initData() {
+    protected open fun initData() {
     }
 
-    protected fun showToast(msg: String) {
+    protected open fun showToast(msg: String) {
         toast(msg)
     }
 
