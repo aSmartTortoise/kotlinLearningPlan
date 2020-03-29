@@ -2,7 +2,9 @@ package com.wyj.mvplayter.base
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.wyj.mvplayter.ui.activity.MainActivity
 import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.startActivity
 import org.jetbrains.anko.toast
 
 abstract class BaseActivity : AppCompatActivity(), AnkoLogger {
@@ -29,6 +31,11 @@ abstract class BaseActivity : AppCompatActivity(), AnkoLogger {
 
     protected open fun showToast(msg: String) {
         toast(msg)
+    }
+
+    inline fun <reified T : BaseActivity> startActivityAndFinish() {
+        startActivity<T>()
+        finish()
     }
 
 
