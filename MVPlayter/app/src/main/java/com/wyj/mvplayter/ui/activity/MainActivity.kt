@@ -5,7 +5,9 @@ import android.os.Bundle
 import androidx.appcompat.widget.Toolbar
 import com.wyj.mvplayter.R
 import com.wyj.mvplayter.base.BaseActivity
+import com.wyj.mvplayter.utils.FragmentUtils
 import com.wyj.mvplayter.utils.ToolbarManager
+import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.find
 
 class MainActivity : BaseActivity(), ToolbarManager {
@@ -21,6 +23,19 @@ class MainActivity : BaseActivity(), ToolbarManager {
     override fun initView() {
         super.initView()
         initMainToolbar()
+    }
+
+    override fun initListener() {
+        super.initListener()
+        bottomBar.setOnTabSelectListener { tabId ->
+            var fragment = FragmentUtils.fragmentUtils.getFragment(tabId)
+            fragment?.let { fg ->
+                supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.fl_container, fg, tabId.toString())
+                    .commit()
+            }
+        }
     }
 
 
