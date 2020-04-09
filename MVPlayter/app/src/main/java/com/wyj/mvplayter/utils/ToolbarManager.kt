@@ -34,4 +34,12 @@ interface ToolbarManager {
 //
 //        })
     }
+
+    fun initSettingToolbar() {
+        mToolbar.setTitle("设置")
+    }
+
+    fun initAboutToolbar() {
+        mToolbar.setTitle("关于")
+    }
 }

@@ -8,18 +8,19 @@ import com.wyj.mvplayter.base.BaseActivity
 import com.wyj.mvplayter.utils.ToolbarManager
 import org.jetbrains.anko.find
 
-class SettingActivity : BaseActivity(), ToolbarManager {
+class AboutActivity : BaseActivity(), ToolbarManager {
 
     override val mToolbar: Toolbar by lazy {
         find<Toolbar>(R.id.tool_bar)
     }
 
     override fun getLayoutId(): Int {
-        return R.layout.activity_setting
+        return R.layout.activity_about
     }
 
     override fun initView() {
-        initSettingToolbar()
+        super.initView()
+        initAboutToolbar()
     }
 
 }

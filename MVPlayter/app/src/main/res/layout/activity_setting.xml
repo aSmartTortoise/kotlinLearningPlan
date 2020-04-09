@@ -6,9 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".ui.activity.SettingActivity">
 
-    <TextView
+    <include
+        layout="@layout/tool_bar"
+        app:layout_constraintTop_toTopOf="parent"/>
+    <fragment
+        android:id="@+id/setting_fragment"
+        class="com.wyj.mvplayter.ui.fragment.SettingFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="设置" />
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/tool_bar"/>
 </androidx.constraintlayout.widget.ConstraintLayout>
