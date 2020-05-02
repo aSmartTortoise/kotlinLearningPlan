@@ -43,38 +43,50 @@ class HomeFragment : BaseFragment() {
     override fun initView() {
         super.initView()
         rcv.layoutManager = LinearLayoutManager(context)
+        rcv.overScrollMode = View.OVER_SCROLL_NEVER
         rcv.adapter = homeAdapter
+        refresh_layout.setColorSchemeColors(Color.RED, Color.GREEN, Color.BLUE)
+        refresh_layout.setOnRefreshListener {
+            loadData()
+        }
     }
 
     override fun initData() {
         super.initData()
-        var url = URLProviderUtils.getHomeUrl(0, 10)
-        var request: Request = Request
+        refresh_layout.isRefreshing = true
+        loadData()
+    }
+
+    private fun loadData() {
+        val url = URLProviderUtils.getHomeUrl(0, 10)
+        val request: Request = Request
             .Builder()
             .url(url)
             .get()
             .build()
-        var okHttpClient = OkHttpClient()
+        val okHttpClient = OkHttpClient()
         okHttpClient.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                Log.d("wyj1", "onFailure")
+                ThreadUtils.runOnUIThread(Runnable {
+                    refresh_layout.isRefreshing = false
+                })
+                showToast("获取网络数据出错")
             }
 
             override fun onResponse(call: Call, response: Response) {
-                var result = response.body?.string()
-//                Log.d("wyj1", "onResponse " + result)
+                ThreadUtils.runOnUIThread(Runnable {
+                    refresh_layout.isRefreshing = false
+                })
+                val result = response.body?.string()
+                Log.d("wyj1", "onResponse " + result)
                 result?.let {
-                    var homeResponse = Gson().fromJson<HomeResponse>(
+                    val homeResponse = Gson().fromJson<HomeResponse>(
                         result,
                         object : TypeToken<HomeResponse>() {}.type
                     )
-                    var homeItemEntityList = homeResponse?.data
-                    homeItemEntityList?.let {list ->
-                        ThreadUtils.runOnUIThread(object : Runnable {
-                            override fun run() {
-                                homeAdapter.reloadData(list)
-                            }
-                        })
+                    val homeItemEntityList = homeResponse?.data
+                    homeItemEntityList?.let { list ->
+                        ThreadUtils.runOnUIThread(Runnable { homeAdapter.reloadData(list) })
                     }
                 }
             }

@@ -1,5 +1,6 @@
 package com.wyj.mvplayter.base
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.wyj.mvplayter.ui.activity.MainActivity
@@ -11,6 +12,7 @@ abstract class BaseActivity : AppCompatActivity(), AnkoLogger {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         setContentView(getLayoutId())
         initView()
         initListener()

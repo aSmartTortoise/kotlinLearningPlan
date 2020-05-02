@@ -5,10 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import com.wyj.mvplayter.utils.ThreadUtils
 import org.jetbrains.anko.AnkoLogger
+import org.jetbrains.anko.support.v4.runOnUiThread
 import org.jetbrains.anko.support.v4.toast
 
-abstract class BaseFragment: Fragment(), AnkoLogger {
+abstract class BaseFragment : Fragment(), AnkoLogger {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -18,7 +20,8 @@ abstract class BaseFragment: Fragment(), AnkoLogger {
     protected fun init() {
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         return getContentView()
     }
@@ -42,8 +45,7 @@ abstract class BaseFragment: Fragment(), AnkoLogger {
     }
 
     protected open fun showToast(msg: String) {
-        toast(msg)
+        ThreadUtils.runOnUIThread(Runnable { toast(msg) })
     }
-
 
 }

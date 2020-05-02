@@ -9,7 +9,7 @@ import java.util.ArrayList
 
 class HomeAdapter: RecyclerView.Adapter<HomeAdapter.HomeViewHolder>() {
 
-    var mDataList = ArrayList<HomeItemEntity>()
+    private var mDataList = ArrayList<HomeItemEntity>()
 
     fun reloadData(list:List<HomeItemEntity>) {
         mDataList.clear()
@@ -23,10 +23,15 @@ class HomeAdapter: RecyclerView.Adapter<HomeAdapter.HomeViewHolder>() {
     }
 
     override fun getItemCount(): Int {
-        return 20
+        return mDataList.size
     }
 
     override fun onBindViewHolder(holder: HomeViewHolder, position: Int) {
+        var itemEntity = mDataList.get(position)
+        itemEntity.let {
+            val itemView = holder.itemView as HomeItemView
+            itemView.bindData(itemEntity)
+        }
     }
 
     class HomeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
