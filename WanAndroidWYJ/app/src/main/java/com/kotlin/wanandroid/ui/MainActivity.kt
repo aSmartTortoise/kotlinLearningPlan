@@ -1,7 +1,8 @@
-package com.kotlin.wanandroid
+package com.kotlin.wanandroid.ui
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import com.kotlin.wanandroid.R
 
 class MainActivity : AppCompatActivity() {
 
