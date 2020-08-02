@@ -6,7 +6,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Environment
 import androidx.appcompat.app.AppCompatDelegate
-import com.cxz.wanandroid.constant.Constant
+import com.kotlin.wanandroid.constant.Constant
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
 import com.kotlin.wanandroid.utils.CommonUtil
@@ -130,17 +130,17 @@ class WanAndroidApplication: Application() {
 
     private fun initTheme() {
         if (SettingUtil.getIsAutoNightMode()) {
-            val nightStartHour = SettingUtil.getNightStartHour().toInt()
-            val nightStartMinute = SettingUtil.getNightStartMinute().toInt()
-            val dayStartHour = SettingUtil.getDayStartHour().toInt()
-            val dayStartMinute = SettingUtil.getDayStartMinute().toInt()
+            val nightStartHour = SettingUtil.getNightStartHour()!!.toInt()
+            val nightStartMinute = SettingUtil.getNightStartMinute()!!.toInt()
+            val dayStartHour = SettingUtil.getDayStartHour()!!.toInt()
+            val dayStartMinute = SettingUtil.getDayStartMinute()!!.toInt()
 
             val calendar = Calendar.getInstance()
             val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
             val currentMinute = calendar.get(Calendar.MINUTE)
 
-            val nightValue = nightStartHour * 60 + nightStartMinute
-            val dayValue = dayStartHour * 60 + dayStartMinute
+            val nightValue = nightStartHour!! * 60 + nightStartMinute
+            val dayValue = dayStartHour!! * 60 + dayStartMinute
             val currentValue = currentHour * 60 + currentMinute
 
             if (currentValue >= nightValue || currentValue <= dayValue) {

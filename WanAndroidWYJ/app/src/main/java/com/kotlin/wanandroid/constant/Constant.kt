@@ -1,4 +1,4 @@
-package com.cxz.wanandroid.constant
+package com.kotlin.wanandroid.constant
 
 /**
  * Created by chenxz on 2018/4/21.
