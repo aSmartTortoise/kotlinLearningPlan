@@ -25,6 +25,13 @@ package com.kotlin.kt06
  *      我们可以用lateInit修饰符标记该属性。
  *      4.1 用lateInit修饰符修饰的属性的类型不能是原始数据类型，且不能有自定义的访问器。
  *      4.2 在类体使用该属性的时候使用.isInitialized来检测该属性是否已经初始化。
+ *  5 接口
+ *      接口中的函数或属性可以是抽象的也可以是具体的（有函数体），接口中的属性没有幕后字段。
+ *  6 函数式接口
+ *      只有一个抽象函数的接口称为函数式接口或SAM接口（单个抽象函数），函数式接口中可以有多个非
+ *      抽象成员。
+ *
+ *
  *
  *      
  *
@@ -34,6 +41,11 @@ fun main() {
     val address: Address = Address()
     address.street = "BakerStreet"
     println("this address` street is ${address.street}")
+    val isEvent = object : IPredicate {
+            override fun accept(i: Int): Boolean {
+                return i % 2 == 0
+            }
+    }
 
 }
 
@@ -59,7 +71,20 @@ class PersonClass(var name: String) {
     fun initHomeAddress() {
         homeAddress = Address()
     }
-
-    
-
 }
+
+interface Named {
+    val name: String
+}
+
+interface IPerson : Named {
+    val firstName: String
+    val lastName: String
+    override val name: String
+        get() = "$firstName $lastName"
+}
+
+interface IPredicate {
+    fun accept(i: Int): Boolean
+}
+
