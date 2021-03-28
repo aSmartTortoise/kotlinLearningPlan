@@ -18,6 +18,14 @@ package com.kotlin.kt06
  *      （1）位于顶层或者是object声明或者companion object的一个成员。
  *      （2）以String或原生类型值初始化。
  *      （3）没有自定义getter函数。
+ * 4 延迟初始化属性与变量
+ *      一般地，属性声明为非空类型需要在构造函数中进行初始化。然而这样经常不方便，比如属性可以通过依赖
+ *      注入或在单元测试的setup方法中进行初始化。这种情况下我们不能再构造函数中为该属性提供非空的初始化
+ *      器，又希望在类体中使用该属性时避免空检测。
+ *      我们可以用lateInit修饰符标记该属性。
+ *      4.1 用lateInit修饰符修饰的属性的类型不能是原始数据类型，且不能有自定义的访问器。
+ *      4.2 在类体使用该属性的时候使用.isInitialized来检测该属性是否已经初始化。
+ *
  *      
  *
  */
@@ -32,10 +40,26 @@ fun main() {
 class Address {
     var name: String = "Holmes, Sherlock"
     var street: String = ""
+        get() = field
         set(value) {
             field = value
         }
     val isEmpty: Boolean
         get() = street.isEmpty()
+}
+
+class PersonClass(var name: String) {
+    var age: Int = 0
+        get() = field
+        set(value) {
+            field = value
+        }
+    lateinit var homeAddress: Address
+
+    fun initHomeAddress() {
+        homeAddress = Address()
+    }
+
+    
 
 }
