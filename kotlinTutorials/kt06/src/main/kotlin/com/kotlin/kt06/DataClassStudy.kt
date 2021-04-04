@@ -42,6 +42,20 @@ package com.kotlin.kt06
  *      可以在类中嵌套类，嵌套接口；可以在接口中嵌套类、嵌套接口
  *      11.1 标记为inner修饰符的嵌套类被称为内部类，内部类可以访问外部类的成员，并持有一个
  *          外部类对象的引用。
+ *  12 枚举类
+ *      每个枚举常量都是一个对象。
+ *      枚举常量还可以声明其带有相应的函数以及覆盖基类成员函数的匿名类。
+ *      如果枚举类定义其他成员，那么使用分号将其与定义的枚举常量分割开来。
+ *      枚举类可以实现接口（但是不能从类继承）。
+ *      12.1 使用枚举常量
+ *          枚举类中有合成方法获取定义的枚举常量列表和通过名称获取枚举常量。
+ *          如果枚举类的名称为EnumClss，
+ *          那么EnumClass.valuesOf()---获取定义的枚举常量的列表；
+ *          EnumClass.valueOf(str: String)--获取指定名称的枚举常量；
+ *          valueOf(str: String)如果指定的名称与定义中的枚举常量均不符合则会抛出
+ *          IllegalArgumentException。
+ *      枚举类常量有定义在枚举类名字和位置的属性:name, ordinal。枚举类常量还实现了
+ *      Comparable接口，其中自然顺序是它们在类中定义的顺序。
  *
  *
  *
@@ -80,6 +94,31 @@ class Outer {
     }
 }
 
+enum class ProtocolState {
+    WAITTING {
+        override fun signal() = TALKING
+
+        fun howWait() {
+
+        }
+    },
+    TALKING {
+        override fun signal() = WAITTING
+    };
+
+    abstract fun signal(): ProtocolState
+}
+
 fun main(args: Array<String>) {
     println(Outer().Inner().foo())
+
+    for (it in ProtocolState.values()) {
+        println("$it name is ${it.name} and ordinal is ${it.ordinal}")
+    }
+
+    try {
+        ProtocolState.valueOf("READING")
+    } catch (e: Exception) {
+        println(e)
+    }
 }
