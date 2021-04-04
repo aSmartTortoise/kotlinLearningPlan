@@ -36,6 +36,13 @@ package com.kotlin.kt06
  *          类型参数Int的方法，这就是使用处型变。
  *      10.3 泛型函数
  *          泛型函数的类型参数在函数名称之前。
+ *      10.4 泛型约束
+ *          能够替换给定类型参数的所有类型的集合可以由泛型约束限制。
+ *  11 嵌套类与内部类
+ *      可以在类中嵌套类，嵌套接口；可以在接口中嵌套类、嵌套接口
+ *      11.1 标记为inner修饰符的嵌套类被称为内部类，内部类可以访问外部类的成员，并持有一个
+ *          外部类对象的引用。
+ *
  *
  *
  *
@@ -66,5 +73,13 @@ fun copy(from: Array<out Int>, to: Array<Any>) {
 //    from.set(0, 1); 使用消费类型参数T的方法会编译错误
 }
 
+class Outer {
+    private val bar: Int = 1
+    inner class Inner {
+        fun foo() = bar
+    }
+}
+
 fun main(args: Array<String>) {
+    println(Outer().Inner().foo())
 }
