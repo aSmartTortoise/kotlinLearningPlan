@@ -42,7 +42,14 @@ import kotlin.reflect.KProperty
  *      15.7 NOT NULL
  *          not null使用于那些一个类的对象在初始化阶段尚不能确定某个属性的值的场合。如果该属性在初始化前
  *          就去访问该属性就会抛出异常。
- *
+ *      15.8 属性委托要求
+ *          对于只读属性，被委托的类需要提供一个操作符函数getValue。该函数接受连个参数，第一个
+ *          thisRef为该属性的接受者类型或其超类，第二个属性property为KProperty<*>类型或其超类。
+ *          getValue必须返回该属性的类型或其子类型。
+ *          对于可写的属性，还需要额外提供一个操作符函数setValue。该函数接受三个参数。第一个thisRef
+ *          为该属性的接受者类型或其超类型；第二个property为KPropertya<*>类型或其超类型；第三个value
+ *          为该属性类型或其超类型。
+ *          getValue/setValue函数可以有被委托的类的成员函数或其扩展函数来提供。
  *
  *
  */
