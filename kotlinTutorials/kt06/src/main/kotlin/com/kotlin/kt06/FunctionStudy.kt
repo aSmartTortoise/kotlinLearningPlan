@@ -33,6 +33,9 @@ import kotlin.jvm.functions.FunctionN
  *              (2)使用实现函数类型接口的自定义类的实例。
  *              (3)函数引用及属性引用。https://www.jianshu.com/p/10358883455c
  *              默认情况下，函数声明中的返回值为函数类型是不带接受者的。
+ *         16.4.3 匿名函数
+ *              匿名函数的参数只能在括号内传递，这与普通函数声明时一样的，而Lambda表达式作为函数的最后一个参数
+ *              其可以在圆括号以外。
  *         16.4.3 lambda表达式 https://www.cnblogs.com/Jetictors/p/8647888.html
  *              lambda表达式的本质其实是匿名函数，底层是通过匿名函数实现的。
  *              特点：
@@ -46,7 +49,6 @@ import kotlin.jvm.functions.FunctionN
  *         16.4.4 闭包
  *              闭包即函数中包含函数，这里的函数包括：匿名函数、lambda表达式、局部函数、对象表达式。
  *              Java是不支持闭包的，Kotlin支持闭包。
- *              Kotlin中几种闭包的表现形式。
  *
  *
  *
@@ -76,6 +78,8 @@ class FunctionExample {
         println("x ^ 2 = ${x * x}")
     }
 
+    val m: (Int) -> String = fun(x: Int) = "$x,"//匿名函数
+
     fun test(num1: Int, bool: (Int) -> Boolean): Int {
         return if (bool(num1)) {num1} else 0
     }
@@ -100,5 +104,6 @@ fun main(args: Array<String>) {
     val map = mapOf("key1" to "value1", "key2" to "value2",
         "key3" to "value3")
     map.forEach{ (_, value) -> println(value)}
+    println("FunctionExamplt m ${functionExample.m.invoke(10)}")
 
 }
