@@ -36,7 +36,7 @@ import kotlin.jvm.functions.FunctionN
  *         16.4.3 匿名函数
  *              匿名函数的参数只能在括号内传递，这与普通函数声明时一样的，而Lambda表达式作为函数的最后一个参数
  *              其可以在圆括号以外。
- *         16.4.3 lambda表达式 https://www.cnblogs.com/Jetictors/p/8647888.html
+ *         16.4.4 lambda表达式 https://www.cnblogs.com/Jetictors/p/8647888.html
  *              lambda表达式的本质其实是匿名函数，底层是通过匿名函数实现的。
  *              特点：
  *              (1)总是被大括号扩着。
@@ -46,24 +46,28 @@ import kotlin.jvm.functions.FunctionN
  *              lambda表达式中的参数只有一个的时候，可以用it来代表此参数。it可表示为单个参数的隐式名称，
  *              是Kotlin语言约定的。
  *              在lambda表达式中，使用_表示未使用的参数，表示不处理这个参数。
+ *         16.4.5 带接收者的函数字面值
+ *              在Kotlin中提供了指定的接受者对象调用Lambda表达式的功能。在函数字面值的函数体中，可以调用
+ *              接受者对象的方法而无需任何额外的限定符，它允许在函数体中访问接受者对象的成员。
  *         16.4.4 闭包
  *              闭包即函数中包含函数，这里的函数包括：匿名函数、lambda表达式、局部函数、对象表达式。
  *              Java是不支持闭包的，Kotlin支持闭包。
+ *              Kotlin中几种闭包的表现形式。
  *
  *
  *
  *
- *              
  *
  *
  *
  *
- *          
+ *
+ *
+ *
  *
  **/
 
-
-
+val n = fun Int.(other: Int): Int = this + other//待接受者的匿名函数作为函数引用
 class FunctionExample {
     fun printHello(name: String?): Unit {
         if (name != null) println("Hello, $name")
@@ -81,14 +85,25 @@ class FunctionExample {
     val m: (Int) -> String = fun(x: Int) = "$x,"//匿名函数
 
     fun test(num1: Int, bool: (Int) -> Boolean): Int {
-        return if (bool(num1)) {num1} else 0
+        return if (bool(num1)) {
+            num1
+        } else 0
+    }
+
+    //闭包 函数的返回值类型为函数类型 且携带状态值
+    fun test1(b: Int): () -> Int {
+        var a = 1
+        return fun(): Int {
+            a ++
+            return a + b
+        }
     }
 
 
 }
 
-class Test: (Int) -> String {
-    override fun invoke(p1: Int): String  {
+class Test : (Int) -> String {
+    override fun invoke(p1: Int): String {
         return "$p1 xxx"
     }
 }
@@ -99,11 +114,21 @@ fun main(args: Array<String>) {
     val arr = arrayOf(1, 3, 5, 7)
     println(arr.filter { it > 3 }.component1())
     val functionExample = FunctionExample()
-    println(functionExample.test(10) { it > 5})
-    println(functionExample.test(5) {it > 5})
-    val map = mapOf("key1" to "value1", "key2" to "value2",
-        "key3" to "value3")
-    map.forEach{ (_, value) -> println(value)}
+    println(functionExample.test(10) { it > 5 })
+    println("lambda作为函数的参数${functionExample.test(10) { it: Int -> it > 5 }}")
+//    println(functionExample.test(5) {it > 5})
+    val map = mapOf(
+        "key1" to "value1", "key2" to "value2",
+        "key3" to "value3"
+    )
+    map.forEach { (_, value) -> println(value) }
     println("FunctionExamplt m ${functionExample.m.invoke(10)}")
+    println("FunctionExamplt m ${functionExample.m(10)}")
+    println("带接受者的匿名函数${2.n(3)}")
+    println("------------闭包演示-------------")
+    var test1 = functionExample.test1(10)
+    println(test1.invoke())
+    println(test1.invoke())
+    println(test1.invoke())
 
 }
