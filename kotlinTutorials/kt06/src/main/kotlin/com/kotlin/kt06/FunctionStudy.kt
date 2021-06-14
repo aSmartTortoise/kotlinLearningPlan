@@ -53,6 +53,40 @@ import kotlin.jvm.functions.FunctionN
  *              闭包即函数中包含函数，这里的函数包括：匿名函数、lambda表达式、局部函数、对象表达式。
  *              Java是不支持闭包的，Kotlin支持闭包。
  *              Kotlin中几种闭包的表现形式。
+ *        16.5 内联函数 https://segmentfault.com/a/1190000038996559
+ *        16.5.1 内联函数的概念
+ *              被inline修饰的函数就是内联函数。其原理：在编译期，把调用这个函数的地方用这个函数的方法
+ *              体进行替换。
+ *              val ints = intArrayOf(1, 2, 3, 4, 5)
+                ints.forEach {
+                    println("Hello $it")
+                }
+
+                forEach函数的定义为：
+                public inline fun forEach(action: (Int) -> Unit): Unit {
+                    for(element in this) action(element)
+                }
+
+                forEach函数每inline修饰，它是一个内联函数，
+            16.5.2 内联函数的定义
+                内联函数的定义很简单，就是在用inline修饰。
+                虽然说内联函数可以减少函数的调用来优化性能，但是并不是每一个函数前加inline修饰就可以
+                优化性能。我们一般将高阶函数定义为内联函数。
+
+                使用高阶函数会带来一些性能上的损失：高阶函数中函数体中有关函数的引用的对象带来的内存分配
+                和高阶函数的虚拟调用会带来运行时间的开销。而将高阶函数内联化后可减少了高阶函数额调用（直接
+                调用的是函数体）、减少了函数引用的对象的创建。
+
+                inline修饰符影响函数本身和传递给它的Lambda表达式：所有这些都将内联到调用处。
+            16.5.3 禁用内联 https://www.kotlincn.net/docs/reference/inline-functions.html
+                如果只希望内联一部分传递给内联函数的函数应用的参数，那么可以使用oninline修饰符
+                修饰不希望内联的函数引用的参数。
+                inline fun foo(inlined: () -> Unit, noinline noinlined: () -> Unit): Unit {}
+                
+
+
+ *
+ *
  *
  *
  *
@@ -99,7 +133,17 @@ class FunctionExample {
         }
     }
 
+    inline fun cost(block: () -> Unit) {
+        val start = System.currentTimeMillis()
+        block()
+        println(System.currentTimeMillis() - start)
+    }
 
+    fun costNotInline(block: () -> Unit) {
+        val start = System.currentTimeMillis()
+        block()
+        println(System.currentTimeMillis() - start)
+    }
 }
 
 class Test : (Int) -> String {
@@ -130,5 +174,19 @@ fun main(args: Array<String>) {
     println(test1.invoke())
     println(test1.invoke())
     println(test1.invoke())
+    println("-----------------内联函数------------")
+    val ints = intArrayOf(1, 2, 3, 4, 5)
+    ints.forEach {
+        println("Hello $it")
+    }
+
+    println("---------内联函数性能优化的证明------------")
+    val str: String = "Hello inline function, Hello inline function, Hello inline function, Hello inline function" +
+            "Hello inline function, Hello inline function, Hello inline function, Hello inline function" +
+            "Hello inline function, Hello inline function, Hello inline function, Hello inline function"
+    functionExample.cost { println(str) }
+    functionExample.costNotInline { println(str) }
+
+
 
 }
