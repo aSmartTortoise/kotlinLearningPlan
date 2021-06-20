@@ -45,6 +45,8 @@ import kotlin.jvm.functions.FunctionN
  *              it 不是Kotlin中的一个关键字。
  *              lambda表达式中的参数只有一个的时候，可以用it来代表此参数。it可表示为单个参数的隐式名称，
  *              是Kotlin语言约定的。
+ *              如果一个Lambada表达式中只有一个参数，那么可以省略这个参数和->，用it代表这个参数（
+ *              https://blog.csdn.net/u011288271/article/details/108385586）
  *              在lambda表达式中，使用_表示未使用的参数，表示不处理这个参数。
  *         16.4.5 带接收者的函数字面值
  *              在Kotlin中提供了指定的接受者对象调用Lambda表达式的功能。在函数字面值的函数体中，可以调用
@@ -67,14 +69,14 @@ import kotlin.jvm.functions.FunctionN
                     for(element in this) action(element)
                 }
 
-                forEach函数每inline修饰，它是一个内联函数，
+                forEach函数被inline修饰，它是一个内联函数，
             16.5.2 内联函数的定义
-                内联函数的定义很简单，就是在用inline修饰。
+                内联函数的定义很简单，就是用inline修饰。
                 虽然说内联函数可以减少函数的调用来优化性能，但是并不是每一个函数前加inline修饰就可以
                 优化性能。我们一般将高阶函数定义为内联函数。
 
-                使用高阶函数会带来一些性能上的损失：高阶函数中函数体中有关函数的引用的对象带来的内存分配
-                和高阶函数的虚拟调用会带来运行时间的开销。而将高阶函数内联化后可减少了高阶函数额调用（直接
+                使用高阶函数会带来一些性能上的损失：高阶函数的函数体中有关函数的引用的对象带来的内存分配
+                和高阶函数的虚拟调用会带来运行时间的开销。而将高阶函数内联化后可减少了高阶函数的调用（直接
                 调用的是函数体）、减少了函数引用的对象的创建。
 
                 inline修饰符影响函数本身和传递给它的Lambda表达式：所有这些都将内联到调用处。
@@ -82,6 +84,21 @@ import kotlin.jvm.functions.FunctionN
                 如果只希望内联一部分传递给内联函数的函数应用的参数，那么可以使用oninline修饰符
                 修饰不希望内联的函数引用的参数。
                 inline fun foo(inlined: () -> Unit, noinline noinlined: () -> Unit): Unit {}
+                可以内联的Lambda表达式只能在内联函数的内部调用或者作为可以内联的参数传递，但是被
+                oninline修饰的Lambda表达式可以以任何我们喜欢的方式操作：存储在字段中、传递它等。
+            16.5.4 非局部返回
+                在Kotlin中，我们只能对具名函数或匿名函数使用正常的、非限定的return返回。这意味着
+            要退出一个Lambda表达式，我们必须使用标签，并且在Lambda表达式内部禁止使用裸return，因为
+            Lambada表达式不能使包含它的函数返回。(https://www.kotlincn.net/docs/reference/inline-functions.html)
+            Lambda禁止使用return关键字，但是可以使用限定的返回语法：return@函数名 显示返回一个值，否则
+            则隐式返回最后一个表达式的值。（https://blog.csdn.net/u011288271/article/details/108385586）
+            一个不带标签的return语句总是在使用fun关键字声明的函数中返回。
+            内联函数中的Lambda表达式可以使用非限定的return语句，返回的是外部那个调用内联函数的函数，而
+            不是内联函数本身。这就叫内联函数的Lambda表达式的非局部返回。
+
+
+
+
                 
 
 
@@ -117,6 +134,7 @@ class FunctionExample {
     }
 
     val m: (Int) -> String = fun(x: Int) = "$x,"//匿名函数
+    val n: (Int) -> Int = {it + 5}//只有一个参数的Lambada表达式的函数类型的声明
 
     fun test(num1: Int, bool: (Int) -> Boolean): Int {
         return if (bool(num1)) {
@@ -144,6 +162,8 @@ class FunctionExample {
         block()
         println(System.currentTimeMillis() - start)
     }
+
+
 }
 
 class Test : (Int) -> String {
@@ -169,6 +189,7 @@ fun main(args: Array<String>) {
     println("FunctionExamplt m ${functionExample.m.invoke(10)}")
     println("FunctionExamplt m ${functionExample.m(10)}")
     println("带接受者的匿名函数${2.n(3)}")
+    println("只有一个参数的Lambada表达式中用it代表这个参数${functionExample.n.invoke(10)}")
     println("------------闭包演示-------------")
     var test1 = functionExample.test1(10)
     println(test1.invoke())
