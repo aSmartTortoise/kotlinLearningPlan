@@ -95,6 +95,22 @@ import kotlin.jvm.functions.FunctionN
             一个不带标签的return语句总是在使用fun关键字声明的函数中返回。
             内联函数中的Lambda表达式可以使用非限定的return语句，返回的是外部那个调用内联函数的函数，而
             不是内联函数本身。这就叫内联函数的Lambda表达式的非局部返回。
+            16.5.5 具体化的类型参数
+
+            16.5.6 内联属性
+                inline可以修饰没有幕后字段的属性的访问器；可以标注独立的属性访问器，也可以标注整个
+            属性。
+            16.5.7 公有api内联函数的限制
+                当一个函数被public或者protected修饰的时候，它就是一个模块级的公有api，可以在其他
+            模块中调用它。
+                这样对于公有api的内联函数来说，当本模块的的api发生变更时导致其他调用这个内联函数的模块
+            发生二进制兼容的风险。——声明一个内联函数但调用它的模块在它发生改变时并没有重新编译。
+            为了消除由非公有api变更引起的二进制兼容的风险，公有api的内联函数的函数体内不允许使用非公有
+            的声明，即不允许使用由private或internal修饰的声明或其他组件。一个internal声明，可以由
+            @PublishedApi标注，这允许在公有api的内联函数的函数体内部使用该api。当一个internal修饰的
+            内联函数被标记为@PublishedApi时，它会像公有函数一样检测其函数体。
+
+                
 
 
 
@@ -161,6 +177,37 @@ class FunctionExample {
         val start = System.currentTimeMillis()
         block()
         println(System.currentTimeMillis() - start)
+    }
+
+    /**
+     * 内联属性 1
+     */
+    var name: String
+        inline get() = "FunctionExample"
+        set(value) {
+            println("set $value")
+        }
+
+    /**
+     * 内联属性2
+     */
+    inline var length: Int
+        get() = 100
+        set(value) {
+            println("set $value")
+        }
+
+    /**
+     * 公有api的内联函数的限制，被interanl修饰的函数被标记为@PublishedApi时，可以在
+     * 公有api的内联函数的函数体中使用。
+     */
+    @PublishedApi
+    internal fun hello() {
+        println("hello this is a internal function.")
+    }
+
+    inline fun fun1(block: () -> Unit) {
+        hello()
     }
 
 
