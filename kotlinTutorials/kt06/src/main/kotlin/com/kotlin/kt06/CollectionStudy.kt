@@ -49,6 +49,10 @@ package com.kotlin.kt06
  *      List<T>.associate(keySelector: (T) -> K, valueTransform: (T) -> V): Map<K, V>
  *      将集合中的元素根据指定的转换函数转换得到的结果 为key，将集合中的元素根据指定的值转换函数转换得到的结果
  *  为value，得到key value映射的集合Map，并返回。
+ *      List<T>.associate(transform: (T) -> Pair<K, V>): Map<K, V>
+ *      集合中的元素根据指定的转换函数transform 生成Pair对象，其中key、value为元素映射函数的结果，然后根据
+ *  Pair生成对应的Map，并返回。但是这种方式会生成临时的Pair对象，一定程度上会带来性能上的损失，
+ *      ，
  *
  *
  *
@@ -142,6 +146,7 @@ fun main(args: Array<String>) {
     println(colors.associateWith { it.first().toUpperCase() })
     println(colors.associateBy { it.first().toUpperCase() })
     println(colors.associateBy({ it.first().toUpperCase()}, { it.length}))
+    println(colors.associate { Pair(it.first().toUpperCase(), it) })
 
 
 }
