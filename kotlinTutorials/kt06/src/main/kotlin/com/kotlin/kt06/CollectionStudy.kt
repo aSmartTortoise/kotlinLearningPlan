@@ -29,7 +29,7 @@ import java.lang.StringBuilder
  *      flatMap(transform: (T) -> Iterable<R>): List<R>
  *      遍历集合中的每一个元素，把第一个元素映射成一个List1，将第二个元素映射成List2后，List1和List2
  * 合并List1.addAll(List2)，依次类推，然后返回一个扁平的List。
- *  17.2.2合拢 https://www.kotlincn.net/docs/reference/collection-transformations.html
+ *  17.2.1.2 合拢 https://www.kotlincn.net/docs/reference/collection-transformations.html
  *      合拢转换就是两个集合由相同位置的元素构建配对。在Kotlin标准库中是通过zip扩展函数来实现的。zip是
  *  生产操作符的一种。
  *      zip(other: Iterable<R>): List<Pair<T, R>>
@@ -42,7 +42,7 @@ import java.lang.StringBuilder
  *      List<Pair<T, R>>.unzip(): Pair<List<T>, List<R>>
  *  以Pair<T, R>为元素的集合，依次去Pair<T, R>元素的key， value，将key放到集合list1中，将value放到集合
  *  list2中，然后以集合list1为key，集合list2为value构建新的Pair对象，并返回这个Pair对象。
- *  17.2.3 关联
+ *  17.2.1.3 关联
  *      基本的关联函数是associateWith，其中原始集合中的元素是键，原始集合中的元素根据指定的转换函数转换后
  *  得到的结果为值，有key和value形成map，如果同一个key有相同的value，则去最后个一个Pair对象，并返回。
  *      List<T>.associateBy(transform: (T) -> K): Map<K, T>
@@ -54,13 +54,13 @@ import java.lang.StringBuilder
  *      List<T>.associate(transform: (T) -> Pair<K, V>): Map<K, V>
  *      集合中的元素根据指定的转换函数transform 生成Pair对象，其中key、value为元素映射函数的结果，然后根据
  *  Pair生成对应的Map，并返回。但是这种方式会生成临时的Pair对象，一定程度上会带来性能上的损失。
- *  17.2.4 打平
+ *  17.2.1.4 打平
  *      打平转换是用来操作或访问嵌套集合中的元素的。
  *      Interable<Interable<T>>flatten(): Interable<T>
  *      flatMap(transform: (T) -> Iterable<R>): List<R>
  *      遍历集合中的每一个元素，把第一个元素映射成一个List1，将第二个元素映射成List2后，List1和List2
  * 合并List1.addAll(List2)，依次类推，然后返回一个扁平的List。
- *  17.2.5 字符串表示
+ *  17.2.1.5 字符串表示
  *      Iterable<T>.joinToString()
  *      默认的实现是将集合中的元素逐个取出，并以逗号分隔形成String。
  *      要构建自定义的String形式，可以在实际参数中指定separator，prefix， postfix，得到的字符串将以
@@ -73,6 +73,36 @@ import java.lang.StringBuilder
  *  transform: (T) -> Charsequence): Charsequece
  *      实现的思路和joinToString类似，将集合中的每个元素逐个根据指定的transform函数转换后，再追加到指定的
  *  appendable对象上去。
+ *  17.2.2 过滤
+ *      https://www.kotlincn.net/docs/reference/collection-filtering.html
+ *      https://www.bookstack.cn/read/JackChan1999-Kotlin-Tutorials/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6-List%E8%BF%87%E6%BB%A4%E6%93%8D%E4%BD%9C%E5%87%BD%E6%95%B0.md#9ri08o
+ *      过滤是最常用的集合处理任务之一。过滤条件有谓词定义——接收一个集合元素，并返回一个Boolean的Lambda
+ *  表达式。
+ *  17.2.2.1 按谓词过滤
+ *      Iterable<T>.filter(predicate: (T) -> Boolean): List<T>
+ *      过滤出满足条件的元素组成的子集合。返回的结果是List有索引的，可以重复的集合。
+ *      Iterable<T>.filterIndexed(predicate: (index, T) -> Boolean): List<T>
+ *      Iterable<T>.filterNot(predicate: (T) -> Boolean): List<T>
+ *      过滤不满足条件的元素组成的子集合。
+ *  17.2.2.2 划分
+ *      Iterable<T>.partition(predicate: (T) -> Boolean): Pair<List<T>, List<T>>
+ *      根据指定的过滤条件将集合划分为符合过滤条件的子集合list1和不符合条件的子集合list2，并组成Pair对象，
+ * 其中key为list1，value为list2.
+ *  17.2.2.3 检验谓词
+ *      有些扩展函数只是对针对集合中的元素简单地做检验一次谓词。
+ *      Iterable<T>.any(predicate: (T) -> Boolean): Boolean
+ *      如果集合中有一个元素符合条件则返回true，否则返回false。
+ *      Iterable<T>.none(predicate: (T) -> Boolean): Boolean
+ *      如果集合中的元素都满足条件，则返回false，否则返回true。
+ *      Iterable<T>.all(predicate: (T) -> Boolean): Boolean
+ *      如果集合中的元素都满足条件，则返回true，否则返回false。一个空集合调用all扩展函数始终返回true。
+ *      any和none也可以不带谓词，在这种情况下它们用来检测集合是否为空。
+ *  17.2.3 plus和minus操作符
+ *      Kotlin为集合定义了加减操作符，返回值是一个只读集合。
+ *
+ *
+ *
+ *
  *
  *
  *
@@ -157,8 +187,8 @@ fun main(args: Array<String>) {
     val flattenMapCharList3 = charList1.map { it -> listOf(it + 1, it + 2, it + 3) }.flatten()
     println(flattenMapCharList3)
     println("-----------------合拢转换--------------------")
-    val colors = listOf<String>("Red", "Borown", "Grey")
-    val animals = listOf<String>("Fox", "Bear", "Wolf")
+    val colors = listOf<String>("Red", "Borown", "Grey", "White")
+    val animals = listOf<String>("Fox", "Bear", "Wolf", "Rabit")
     val zipColorAnimals = colors.zip(animals)
     println(zipColorAnimals)
     val zipColorAnimals2 = colors.zip(animals) { t1, t2 -> "$t1 $t2" }
@@ -186,6 +216,20 @@ fun main(args: Array<String>) {
     (1..100).toList().joinTo(resultNumberStr, separator = ",", prefix = "[", postfix = "]",
         limit = 10, truncated = "...", { "${it + 100}" })
     println(resultNumberStr)
+    println("-----------------过滤操作-----------")
+    println(colors.filter { it.length > 3 })
+    println(colors.filterIndexed { index, it -> (index > 0 && it.length > 2) })
+    println(colors.filterNot { it.length > 3 })
+    println(colors.partition { it.length > 4 })
+    println(colors.any { it.length > 3 })
+    println(colors.none { it.length > 3})
+    println(colors.all { it.length > 4 })
+    println(listOf<String>().any())
+    println(listOf<String>().none())
+    println("------------加减操作符-------------")
+    println(colors + "Black")
+    println(colors - "White")
+
 
 }
 
