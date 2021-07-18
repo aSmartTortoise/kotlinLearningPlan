@@ -27,6 +27,32 @@ package com.kotlin.kt06
  *      flatMap(transform: (T) -> Iterable<R>): List<R>
  *      遍历集合中的每一个元素，把第一个元素映射成一个List1，将第二个元素映射成List2后，List1和List2
  * 合并List1.addAll(List2)，依次类推，然后返回一个扁平的List。
+ *  17.2.2合拢 https://www.kotlincn.net/docs/reference/collection-transformations.html
+ *      合拢转换就是两个集合由相同位置的元素构建配对。在Kotlin标准库中是通过zip扩展函数来实现的。zip是
+ *  生产操作符的一种。
+ *      zip(other: Iterable<R>): List<Pair<T, R>>
+ *  两个集合按照下标配对，组合成的每个Pair对象作为新的List集合中的元素，并返回这个集合。如果两个集合的长度
+ *  不一样，则去最短的长度。https://www.bookstack.cn/read/JackChan1999-Kotlin-Tutorials/%E9%9B%86%E5%90%88%E6%A1%86%E6%9E%B6-%E7%94%9F%E4%BA%A7%E6%93%8D%E4%BD%9C%E7%AC%A6.md
+ *  zip生产操作符也可以用中缀形式 list1 zip list2。
+ *      Iterable<T>.zip(other: Iterable<R>, transform: (t1, t2) -> V): List<V>
+ *  两个集合中相同位置的元素根据指定的转换函数transform转换后，形成的V对象，由V元素构建新的集合，并返回
+ *  这个集合。
+ *      List<Pair<T, R>>.unzip(): Pair<List<T>, List<R>>
+ *  以Pair<T, R>为元素的集合，依次去Pair<T, R>元素的key， value，将key放到集合list1中，将value放到集合
+ *  list2中，然后以集合list1为key，集合list2为value构建新的Pair对象，并返回这个Pair对象。
+ *  17.2.3 关联
+ *      基本的关联函数是associateWith，其中原始集合中的元素是键，原始集合中的元素根据指定的转换函数转换后
+ *  得到的结果为值，有key和value形成map，如果同一个key有相同的value，则去最后个一个Pair对象，并返回。
+ *      List<T>.associateBy(transform: (T) -> K): Map<K, T>
+ *      将结合中的元素根据指定的转换函数transform转换得到结果K，形成以K为key，以T为value的map，并返回
+ *  这个map。
+ *      List<T>.associate(keySelector: (T) -> K, valueTransform: (T) -> V): Map<K, V>
+ *      将集合中的元素根据指定的转换函数转换得到的结果 为key，将集合中的元素根据指定的值转换函数转换得到的结果
+ *  为value，得到key value映射的集合Map，并返回。
+ *
+ *
+ *
+ *
  *
  *
  *
@@ -101,6 +127,22 @@ fun main(args: Array<String>) {
     println(mapCharList2)
     val flattenMapCharList3 = charList1.map { it -> listOf(it + 1, it + 2, it + 3) }.flatten()
     println(flattenMapCharList3)
+    println("-----------------合拢转换--------------------")
+    val colors = listOf<String>("Red", "Borown", "Grey")
+    val animals = listOf<String>("Fox", "Bear", "Wolf")
+    val zipColorAnimals = colors.zip(animals)
+    println(zipColorAnimals)
+    val zipColorAnimals2 = colors.zip(animals) { t1, t2 -> "$t1 $t2" }
+    println(zipColorAnimals2)
+    var countryPairs = listOf<Pair<String, String>>(
+        Pair("asin", "china"), Pair("north america", "america"), Pair("europe", "england")
+    )
+    println(countryPairs.unzip())
+    println("-------------------关联操作符-----------------")
+    println(colors.associateWith { it.first().toUpperCase() })
+    println(colors.associateBy { it.first().toUpperCase() })
+    println(colors.associateBy({ it.first().toUpperCase()}, { it.length}))
+
 
 }
 
