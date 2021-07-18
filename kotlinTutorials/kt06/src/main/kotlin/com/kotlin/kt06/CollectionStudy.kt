@@ -99,6 +99,15 @@ import java.lang.StringBuilder
  *      any和none也可以不带谓词，在这种情况下它们用来检测集合是否为空。
  *  17.2.3 plus和minus操作符
  *      Kotlin为集合定义了加减操作符，返回值是一个只读集合。
+ *  17.2.4 分组
+ *      Iterable<T>.groupBy(keySelector: (T) -> K): Map<K, List<T>>
+ *      将函数中的元素按照条件选择器分组，并返回Map，key为条件选择器的返回值，value为符合这个条件的List
+ *      Iterable<T>.groupBy(keySelector: (T) -> K, valueTransform: (T) -> V): Map<K, List<V>>
+ *      将函数中的元素按照条件选择器分组，并返回Map，其中Key为条件选择器的返回值，Value为对应的是Key根据
+ * 值转换函数转换的结果组成的List。
+ *      Iterable<T>.groupingBy(crossInline keySelector: (T) -> K): Grouping<T, K>
+ *      将集合中的元素根据指定的条件选择器分组，返回一个Grouping对象。
+ *
  *
  *
  *
@@ -151,7 +160,8 @@ fun main(args: Array<String>) {
     println(Version(1, 15) in versionRange)
     println("-------------序列Sequence-------------")
     val numberSequece = sequenceOf(0, 1, 2, 3)
-    val numberList = listOf<String>("one", "two", "three", "four")
+    val numberList = listOf<String>("one", "two", "three", "four", "five"
+    , "six", "seven", "eight", "nine", "ten")
     var numberAsSquence = numberList.asSequence()
     println(generateSequence(1) {if (it + 1 < 10) it + 1 else null}.count())
     println("------Iterable与Sequece 的操作的示例")
@@ -229,6 +239,12 @@ fun main(args: Array<String>) {
     println("------------加减操作符-------------")
     println(colors + "Black")
     println(colors - "White")
+    val weeks = listOf<String>("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"
+    , "Saturday", "Sunday")
+    println(weeks.groupBy { it.length })
+    println(weeks.groupBy({it.first()}, {it.toUpperCase()}))
+    val groupingNumbers = numberList.groupingBy { it.first() }
+    println(groupingNumbers.eachCount())
 
 
 }
