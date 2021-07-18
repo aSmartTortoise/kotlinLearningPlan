@@ -1,5 +1,7 @@
 package com.kotlin.kt06
 
+import java.lang.StringBuilder
+
 /**
  ** 17 集合
  **     val numbersMap = mapOf<String, Int>("key0" to 1, "key1" to 2, "key2" to 3)
@@ -51,7 +53,30 @@ package com.kotlin.kt06
  *  为value，得到key value映射的集合Map，并返回。
  *      List<T>.associate(transform: (T) -> Pair<K, V>): Map<K, V>
  *      集合中的元素根据指定的转换函数transform 生成Pair对象，其中key、value为元素映射函数的结果，然后根据
- *  Pair生成对应的Map，并返回。但是这种方式会生成临时的Pair对象，一定程度上会带来性能上的损失，
+ *  Pair生成对应的Map，并返回。但是这种方式会生成临时的Pair对象，一定程度上会带来性能上的损失。
+ *  17.2.4 打平
+ *      打平转换是用来操作或访问嵌套集合中的元素的。
+ *      Interable<Interable<T>>flatten(): Interable<T>
+ *      flatMap(transform: (T) -> Iterable<R>): List<R>
+ *      遍历集合中的每一个元素，把第一个元素映射成一个List1，将第二个元素映射成List2后，List1和List2
+ * 合并List1.addAll(List2)，依次类推，然后返回一个扁平的List。
+ *  17.2.5 字符串表示
+ *      Iterable<T>.joinToString()
+ *      默认的实现是将集合中的元素逐个取出，并以逗号分隔形成String。
+ *      要构建自定义的String形式，可以在实际参数中指定separator，prefix， postfix，得到的字符串将以
+ * prefix前缀开头，以postfix后缀结尾，每个元素以separator分隔的String。
+ *      如果集合的长度比较大，只想得到前面limit个元素的String的形式，则可以指定limit参数，和truncated
+ * 参数。得到的String中以truncated表示剩余的元素。
+ *      如果要求Sting中的元素自定义，可以指定transform: (T) -> CharSequence
+ *      <T, A: Appendable> Iterable<T>.joinTo(buffer: A, separator: Charsequece,
+ *  prefix: Charsequence, posfix: Charsequenc, limit: Int, truncated: Charsequenc,
+ *  transform: (T) -> Charsequence): Charsequece
+ *      实现的思路和joinToString类似，将集合中的每个元素逐个根据指定的transform函数转换后，再追加到指定的
+ *  appendable对象上去。
+ *
+ *
+ *
+ *
  *      ，
  *
  *
@@ -142,12 +167,25 @@ fun main(args: Array<String>) {
         Pair("asin", "china"), Pair("north america", "america"), Pair("europe", "england")
     )
     println(countryPairs.unzip())
-    println("-------------------关联操作符-----------------")
+    println("-------------------关联转换-----------------")
     println(colors.associateWith { it.first().toUpperCase() })
     println(colors.associateBy { it.first().toUpperCase() })
     println(colors.associateBy({ it.first().toUpperCase()}, { it.length}))
     println(colors.associate { Pair(it.first().toUpperCase(), it) })
-
+    println("------------打平转换-------------")
+    val numbers2 = listOf(setOf(1, 2, 3), setOf(4, 5), setOf(6, 7, 8))
+    println(numbers2.flatten())
+    println("-------------------字符串表示转换--------------------")
+    println(animals.toString())
+    println(animals.joinToString())
+    println(animals.joinToString(separator = ",", prefix = "start:", postfix = ":end"))
+    val numbers3 = (1..100).toList()
+    println(numbers3.joinToString(limit = 10, truncated = "..."))
+    println(animals.joinToString { it.toUpperCase() })
+    val resultNumberStr = StringBuilder("the list of numbers:")
+    (1..100).toList().joinTo(resultNumberStr, separator = ",", prefix = "[", postfix = "]",
+        limit = 10, truncated = "...", { "${it + 100}" })
+    println(resultNumberStr)
 
 }
 
