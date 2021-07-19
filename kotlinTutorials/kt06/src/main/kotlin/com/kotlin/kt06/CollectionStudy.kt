@@ -107,6 +107,25 @@ import java.lang.StringBuilder
  * 值转换函数转换的结果组成的List。
  *      Iterable<T>.groupingBy(crossInline keySelector: (T) -> K): Grouping<T, K>
  *      将集合中的元素根据指定的条件选择器分组，返回一个Grouping对象。
+ *  17.2.5 取集合的一部分
+ *      List<T>.slice(indices: IntRange): List<T>
+ *      根据指定的元素获取对应的元素，并组成List返回。
+ *      Iterable<T>.take(n: Int): List<T>
+ *      从集合中依次从头到尾取出指定数量的元素，放到子集合list中，并返回这个子集合list。
+ *      List<T>.takeLast(n: Int): List<T>
+ *      从列表List集合中依次从尾到头取出指定数量的元素，放到子集合list中，并返回这个子集合list。
+ *      Iterable<T>.drop(n: Int): List<T>
+ *      Iterable<T>.takeWhile(predicate: (T) -> Boolean): List<T>
+ *      遍历集合中的元素，如果元素满足指定的条件predicate则将该元素放入到指定的子集合中，直到遇到第一个
+ *      不满足条件的元素为止。最后返回这个子集合。
+ *      List<T>.takeLastWhile(predicate: (T) -> Boolean): List<T>
+ *      Iterable<T>.dropWhile(predicate: (T) -> Boolean): List<T>
+ *      List<T>.dropLastWhile(predicate: (T) -> Boolean): List<T>
+ *      
+ *
+ *
+ *
+ *
  *
  *
  *
@@ -245,6 +264,21 @@ fun main(args: Array<String>) {
     println(weeks.groupBy({it.first()}, {it.toUpperCase()}))
     val groupingNumbers = numberList.groupingBy { it.first() }
     println(groupingNumbers.eachCount())
+    println("----------------取集合的一部分----------------")
+    println(numberList.slice(1..5))
+    println(numberList.slice(listOf(0, 2, 4, 6)))
+    println(numberList.take(5))
+    println(numberList.takeLast(5))
+    val numberSet2 = setOf<String>("One", "Two", "Three", "Four", "Five", "Six"
+    , "Seven", "Eight", "Nine", "Ten")
+    println(numberSet2.take(5))
+    println(numberList.drop(3))
+    println(numberList)
+    println(numberList.dropLast(3))
+    println(animals.takeWhile { it.startsWith('F') })
+    println(animals.takeLastWhile { it.length > 3 })
+    println(animals.dropWhile { it.startsWith('F') })
+    println(animals.dropLastWhile { it.length > 3 })
 
 
 }
