@@ -121,6 +121,19 @@ import java.lang.StringBuilder
  *      List<T>.takeLastWhile(predicate: (T) -> Boolean): List<T>
  *      Iterable<T>.dropWhile(predicate: (T) -> Boolean): List<T>
  *      List<T>.dropLastWhile(predicate: (T) -> Boolean): List<T>
+ *      Iterable<T>.chunked(size: Int): List<T>
+ *      将集合拆分为一个列表列表，每个元素列表的大小不能超过指定的大小。
+ *      Iterable<T>.windowed(size: Int, step: Int, particalWindws: Boolean): List<List<T>>
+ *      返回具有给定大小元素的窗口快照列表，该窗口沿着该集合给定的步长滑动，其中每个快照都是一个列表。
+ *      最后几个列表的元素可能小于给定的大小。
+ *      step--每向前移动下一个窗口 相对于当前窗口第一个元素 要跨越的步长默认为1
+ *      particalWindows--控制是否将部分窗口保留在最后（如果有的话），默认是false，这意味着将不保留窗口。
+ *      Iterable<T>.windowed(size: Int, step: Int, particalWindws: Boolean
+ *      , transform: (List<T>) -> R): List<R>
+ *      Iterable<T>.zipWithNext(): List<Pair<T, T>>
+ *      返回两个元素的Pair对列表，第一个Pair为集合的前两个元素，接下来的Pair为第二个元素和第三个元素，直到
+ *      滑动到集合的最后一个位置为止，处于该位置时以不能组合Pair对。
+ *
  *      
  *
  *
@@ -279,6 +292,20 @@ fun main(args: Array<String>) {
     println(animals.takeLastWhile { it.length > 3 })
     println(animals.dropWhile { it.startsWith('F') })
     println(animals.dropLastWhile { it.length > 3 })
+    println("chunked函数${numberList.chunked(3)}")
+    println("windowed函数${numberList.windowed(3)}")
+    println(numberList.windowed(3, 2, false).take(5))
+    val dataPoints = sequenceOf(10, 15, 18, 25, 19
+        , 21, 14, 8, 5)
+    val averaged = dataPoints.windowed(size = 4, step = 1,
+        partialWindows = true) { window -> window.average() }
+    println(averaged.toList())
+    val numberWindowed1 = numberList.windowed(size = 3, step = 1, partialWindows = true) {
+        it.first().first()
+    }
+    println(numberWindowed1)
+    println("zipWithNext函数${numberList.zipWithNext()}")
+    println(dataPoints.zipWithNext { first, second -> first + second }.toList())
 
 
 }
