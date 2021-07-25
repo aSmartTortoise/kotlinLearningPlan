@@ -133,11 +133,18 @@ import java.lang.StringBuilder
  *      Iterable<T>.zipWithNext(): List<Pair<T, T>>
  *      返回两个元素的Pair对列表，第一个Pair为集合的前两个元素，接下来的Pair为第二个元素和第三个元素，直到
  *      滑动到集合的最后一个位置为止，处于该位置时以不能组合Pair对。
- *
- *      
- *
- *
- *
+ *  17.2.6 取单个元素
+ *      按位置取
+ *      elementAt(index: Int)
+ *      按条件取
+ *      Iterable<T>.first(predicate: (T) -> Boolean): T
+ *      获取满足条件的第一个元素。若没有则抛出NoSuchElementException异常。
+ *      Iterable<T>.firse(predicate: (T) -> Boolean): T
+ *      获取满足条件的第一个元素。若没有则返回null。
+ *  17.2.7 集合排序
+ *      自然顺序
+ *      元素为数字的自然顺序使用传统的数值顺序：1大于0，-0.3f大于0.5f。
+ *      元素为char或string的自然顺序使用字典顺序：b大于a，
  *
  *
  *
@@ -306,6 +313,29 @@ fun main(args: Array<String>) {
     println(numberWindowed1)
     println("zipWithNext函数${numberList.zipWithNext()}")
     println(dataPoints.zipWithNext { first, second -> first + second }.toList())
+    println("------------取单个元素-----------")
+    val numberSet3 = linkedSetOf<String>("one", "two", "three"
+    , "four", "five", "six", "seven", "eight", "nine", "ten")
+    println(numberSet3.elementAt(1))
+    println(numberSet3.last())
+    println(numberSet3.elementAtOrElse(10) {
+        index -> "the value for index $index is undefined!"
+    })
+    println(numberList.first { it -> it.length > 3 })
+    println(numberList.firstOrNull {it -> it.length > 7})
+    println(numberList.random())
+    println(numberList.contains("eleven"))
+    println("two" in numberList)
+    println("----------排序--------------")
+    println("Sorted Ascending: ${numberList.sorted()}")
+    println("Sorted Descending: ${numberList.sortedDescending()}")
+    println("Sorted by Lenght Ascending: ${numberList.sortedBy { it.length }}")
+    println("Sorted by the last letter ascending: ${numberList.sortedBy { it.last() }}")
+    println(numberList.reversed())
+    println(numberList.asReversed())
+
+
+
 
 
 }
