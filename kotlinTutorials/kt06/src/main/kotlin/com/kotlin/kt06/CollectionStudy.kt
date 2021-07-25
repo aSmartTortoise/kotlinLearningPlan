@@ -160,7 +160,7 @@ import java.lang.StringBuilder
  *  17.2.10 List相关操作
  *  17.2.11 Set相关操作
  *      要将两个集合合并为一个，可使用union函数；要查找两个集合中的交集，使用intersect函数。
- *
+ *  17.2.12 Map相关操作
  *
  *
  *      ，
@@ -367,7 +367,12 @@ fun main(args: Array<String>) {
     println(setOf("four", "five") union numberSet4)
     println(numberSet4 intersect setOf("two", "one"))
     println(numberSet4.subtract(setOf("two", "one")))
-    
+    println("------------Map相关操作------------")
+    val numbersMap = mapOf<String, Int>("one" to 1, "two" to 2, "three" to 3)
+    println(numbersMap.get("one"))
+    println(numbersMap.get("four"))
+    println(numbersMap.getOrDefault("four", 4))
+
 }
 
 
