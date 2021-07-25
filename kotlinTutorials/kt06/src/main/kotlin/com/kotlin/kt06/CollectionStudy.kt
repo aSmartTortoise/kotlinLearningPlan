@@ -145,13 +145,21 @@ import java.lang.StringBuilder
  *      自然顺序
  *      元素为数字的自然顺序使用传统的数值顺序：1大于0，-0.3f大于0.5f。
  *      元素为char或string的自然顺序使用字典顺序：b大于a，
- *
- *
- *
- *
- *
- *
- *
+ *  17.2.8 集合聚合操作
+ *      Iterable<T>.minBy(selector: (T) -> R): T?
+ *      元素经过选择器函数处理后，取处理后的结果中的最小值对应的原集合中的元素。
+ *      Iterable<T>.minWith(comparator: Comarator<in T>): T?
+ *      按照给定的Comparator的自定义顺序取集合中最小的元素。
+ *      Iterable<T>.reduce(operator: (S, T) -> S): S
+ *      第一项到最后一项的累计操作。
+ *      Iterable<T>.fold(initial: R, operator: (R, T) -> R): R
+ *      以initial作为初始值，依次第一项到最后一项的累计操作。
+ *  17.2.9 集合写操作
+ *      可变集合支持更改集合内容的操作，例如添加或删除操作。
+ *      add, remove, += -= addAll, removeAll, retain.
+ *  17.2.10 List相关操作
+ *  17.2.11 Set相关操作
+ *      要将两个集合合并为一个，可使用union函数；要查找两个集合中的交集，使用intersect函数。
  *
  *
  *
@@ -333,11 +341,33 @@ fun main(args: Array<String>) {
     println("Sorted by the last letter ascending: ${numberList.sortedBy { it.last() }}")
     println(numberList.reversed())
     println(numberList.asReversed())
-
-
-
-
-
+    println("-------------集合的聚合操作-------------")
+    println(numberList1.minBy { it % 3 })
+    println(numberSet2.maxWith(compareBy { it.length }))
+    println(numberList1.reduce { sum, element -> sum + element })
+    println(numberList1.reduce(n))
+    println(numberList1.fold(1) {sum, element -> sum + element})
+    println(numberList1.reduceIndexed { index, acc, i -> acc + index * i })
+    println("------------------List操作----------")
+    println(numberList.get(1))
+    println(numberList.getOrNull(12))
+    println(numberList.subList(1, 5))
+    println(numberList.indexOf("six"))
+    val numberMutableList = mutableListOf<String>("one", "two", "three", "four", "five"
+    , "six", "seven", "eight", "nine", "ten")
+    numberMutableList.sort()
+    println(numberMutableList)
+    println(numberMutableList.binarySearch("six"))
+    println(numberMutableList.binarySearch("eleven"))
+//    numberMutableList.fill("one") 将集合中的元素替换为"one"
+//    println(numberMutableList)
+    println("------------Set集合的操作----------------")
+    val numberSet4 = setOf<String>("one", "two", "three")
+    println(numberSet4 union setOf("four", "five"))
+    println(setOf("four", "five") union numberSet4)
+    println(numberSet4 intersect setOf("two", "one"))
+    println(numberSet4.subtract(setOf("two", "one")))
+    
 }
 
 
