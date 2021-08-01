@@ -1,8 +1,8 @@
 package com.kotlin.coroutine
 
 import kotlinx.coroutines.*
-import org.omg.PortableInterceptor.ACTIVE
 import kotlin.concurrent.thread
+import kotlin.system.measureTimeMillis
 
 /**
  *  18 协程
@@ -20,9 +20,17 @@ import kotlin.concurrent.thread
  *      isActive是CoroutineScope的一个扩展属性，在协程中恰当使用该属性可以使得该协程是协作的，是可取消的。
  *      在finally中释放资源。通常使用try finally代码块处理协程被取消的时候，可被取消的挂起函数抛出的
  *      CancellationException。
- *
- *
- *
+ *  18.2.1 运行不能被取消的代码块
+ *      当在finally代码块中调用挂起函数都会抛出CancellationException，调用挂起函数视图挂起被取消的协程
+ *  ，这时候可以使用withContext函数以及NonCancellable上下文。
+ *      CancellationExceptin被认为是协程执行结束的正常原因，所以不会在控制台打印该exception。
+ *      但是在使用withTimeout函数的时候如果协程超时运行则会抛出
+ *      kotlinx.coroutines.TimeoutCancellationException。
+ *      如果避免抛出上述异常，可以使用withTimeoutOrNull函数，并将会超时执行的代码放在try代码块中。
+ *      withTimeoutOnNull返回的数据为null的时候代表超时，
+ *  18.3 组合挂起函数
+ *  18.3.1 async并发
+ *     使用async会启动一个协程，它会返回一个Deferred，可以使用await函数在延期的值上得到结果
  *
  */
 
@@ -129,24 +137,93 @@ import kotlin.concurrent.thread
 //    println("main, now i am out")
 //}
 
-fun main() = runBlocking {
-    val job = launch(Dispatchers.Default) {
-        try {
-            repeat(1000) {
-                println("job, i am sleeping $it")
-                delay(500L)
-            }
-        } catch (e: Exception) {
-            println("something is wrong e:" + e)
-        } finally {
-            println(" finally!")
-        }
-    }
+//fun main() = runBlocking {
+//    val job = launch(Dispatchers.Default) {
+//        try {
+//            repeat(1000) {
+//                println("job, i am sleeping $it")
+//                delay(500L)
+//            }
+//        } catch (e: Exception) {
+//            println("something is wrong e:" + e)
+//        } finally {
+//            withContext(NonCancellable) {
+//                println(" finally!")
+//                delay(1000L)
+//                println("job, i have just delayed for 1 second because i am not cancellable!")
+//            }
+//        }
+//    }
+//
+//    delay(2000L)
+//    println("main, i am tired of waiting.")
+//    job.cancelAndJoin()
+//    println("main, now i am out.")
+//}
 
-    delay(2000L)
-    println("main, i am tired of waiting.")
-    job.cancelAndJoin()
-    println("main, now i am out.")
+//fun main() = runBlocking {
+//    withTimeout(1300L) {
+//        repeat(1000) {
+//            println(" i am sleeping $it")
+//            delay(500L)
+//        }
+//    }
+//}
+
+fun main() = runBlocking<Unit> {
+//    defaultOrderExecute()
+//    asyncFunctionStudy()
+    val time = measureTimeMillis {
+        val one = async(start = CoroutineStart.LAZY) { doSomethingUsefulOne() }
+        val two = async(start = CoroutineStart.LAZY) { doSomethingUsefulTwo() }
+        one.start()
+        two.start()
+        println("the answer is ${one.await() + two.await()}")
+    }
+    println("complete in $time ms.")
+}
+
+private suspend fun asyncFunctionStudy() {
+    coroutineScope {
+        val time = measureTimeMillis {
+            val one = async { doSomethingUsefulOne() }
+            val two = async { doSomethingUsefulTwo() }
+            println("the answer is ${one.await() + two.await()}")
+        }
+        println ("complete in $time ms.")
+    }
+}
+
+private suspend fun defaultOrderExecute() {
+    val time = measureTimeMillis {
+        val one = doSomethingUsefulOne()
+        val two = doSomethingUsefulTwo()
+        println("the answer is ${one + two}")
+    }
+    println("complete in $time ms.")
+}
+
+//fun main() = runBlocking {
+//    val result = withTimeoutOrNull(1300L) {
+//        repeat(1000) {
+//            println("i am sleeping $it")
+//            delay(500L)
+//        }
+//
+//        "Done"
+//    }
+//
+//    println("the result is $result")
+//}
+
+suspend fun doSomethingUsefulOne(): Int {
+    delay(1000L)
+    return 13
+}
+
+suspend fun doSomethingUsefulTwo(): Int {
+    delay(1000L)
+    return 29
 }
 
 /**
