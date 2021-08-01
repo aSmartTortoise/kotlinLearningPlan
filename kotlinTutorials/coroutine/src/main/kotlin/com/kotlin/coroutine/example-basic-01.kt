@@ -31,6 +31,21 @@ import kotlin.system.measureTimeMillis
  *  18.3 组合挂起函数
  *  18.3.1 async并发
  *     使用async会启动一个协程，它会返回一个Deferred，可以使用await函数在延期的值上得到结果
+ *  18.4 协程上下文与调度器
+ *      协程总是运行在以CoroutineContext类型为代表的上下文中。协程上下文是各种不同元素的集合，其中主元素是
+ *  Job。
+ *      协程调度器CoroutineDispatcher确定了协程在哪个线程或哪些线程上执行。协程调度器可以将协程限定在一个
+ *  线程上执行，或者分派到一个线程池，或者让它不受限制地执行。
+ *
+ *  18.5 携程的相关函数
+ *  18.5.1 runBlocking 函数https://blog.csdn.net/u011133887/article/details/98617852
+ *      被suspend修饰符修饰的函数就是挂起函数，它不阻塞线程，但是会挂起协程。并且只能在协程中使用，我们
+ *  可以在runBlocking函数中使用挂起函数。
+ *      我们可以使用runBlocking函数构建一个主协程，从而调试我们的协程代码。可以在协程中调用launch函数
+ *  构建一个子携程，用来运行后台阻塞任务。
+ *
+ *
+ *
  *
  */
 
@@ -170,19 +185,44 @@ import kotlin.system.measureTimeMillis
 //    }
 //}
 
-fun main() = runBlocking<Unit> {
-//    defaultOrderExecute()
-//    asyncFunctionStudy()
-    val time = measureTimeMillis {
-        val one = async(start = CoroutineStart.LAZY) { doSomethingUsefulOne() }
-        val two = async(start = CoroutineStart.LAZY) { doSomethingUsefulTwo() }
-        one.start()
-        two.start()
-        println("the answer is ${one.await() + two.await()}")
-    }
-    println("complete in $time ms.")
-}
+//fun main() = runBlocking<Unit> {
+////    defaultOrderExecute()
+////    asyncFunctionStudy()
+//    val time = measureTimeMillis {
+//        val one = async(start = CoroutineStart.LAZY) { doSomethingUsefulOne() }
+//        val two = async(start = CoroutineStart.LAZY) { doSomethingUsefulTwo() }
+//        one.start()
+//        two.start()
+//        println("the answer is ${one.await() + two.await()}")
+//    }
+//    println("complete in $time ms.")
+//}
 
+//fun main() = runBlocking<Unit> {
+//    launch {
+//        println("i am woring in thread:${Thread.currentThread().name}")
+//    }
+//
+//
+//}
+fun main() {
+    /**
+     *  runBlocking函数，开启一个主协程，并在主携程内开启一个子协程，子携程的任务会阻塞主线程，当子
+     *  协程的任务执行完后，才会继续执行主线程的代码。
+     */
+    runBlocking {
+        launch {
+            println("delay before, the time is ${System.currentTimeMillis()} and workking" +
+                    " in thread ${Thread.currentThread().name}")
+            delay(3000L)
+            println("World")
+            println("delay after, the time is ${System.currentTimeMillis()}")
+        }
+        println("runBlocking working in thread ${Thread.currentThread().name}")
+    }
+    println("Hello")
+    println("main the time is ${System.currentTimeMillis()}")
+}
 private suspend fun asyncFunctionStudy() {
     coroutineScope {
         val time = measureTimeMillis {
