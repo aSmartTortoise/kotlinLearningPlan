@@ -43,6 +43,10 @@ import kotlin.system.measureTimeMillis
  *  可以在runBlocking函数中使用挂起函数。
  *      我们可以使用runBlocking函数构建一个主协程，从而调试我们的协程代码。可以在协程中调用launch函数
  *  构建一个子携程，用来运行后台阻塞任务。
+ *      每个coroutine builder都是CoroutineScope的扩展函数。
+ *      runBlocking是桥接阻塞代码和挂起代码之间的桥梁。可在内部运行挂起函数，在其内部的所有子协程任务
+ *  执行完之前是阻塞线程的。
+ *      coroutineScope是个挂起函数。未完待续......
  *
  *
  *
