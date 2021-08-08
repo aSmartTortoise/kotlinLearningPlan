@@ -43,6 +43,17 @@ import kotlinx.coroutines.*
  *  20.2 挂起函数可能会挂起协程
  *      挂起函数不一定会挂起协程，当相关调用的结果已经可用，库可以决定协程继续执行而不是挂起。
  *  20.3 挂起函数不会阻塞线程
+ *  20.4 挂起函数恢复协程后，协程运行在哪个线程。
+ *      协程运行在哪个线程上有协程的CoroutineDispatcher控制。CoroutineDispatcher可以指定协
+ *  程运行在某一特定线程上、运作在线程池中或者不指定运行的线程。协程调度可以分为confined dispatcher
+ *  和unconfined dispatcher。Dispacher.Default、Dispacher.IO、Dispatcher.Main属于confined
+ *  Dispatcher。都指定了协程运行的线程或线程池。挂起函数执行完成后，协程得以恢复，携程继续运行在
+ *  指定的线程或线程池上的。而Dispather.Undefined，协程运行时在Caller Thread上的，但是只是在第一
+ *  个挂起点之前是这样的，挂起恢复后运行在哪个线程完全由调用的挂起函数决定的。
+ *  20.5 协程的创建与启动
+ *  未完待续....
+ *
+ *
  *
  *
  */
@@ -53,13 +64,33 @@ fun main() {
 //    launchFunctionStudy01()
 //    withContextFunctionStudy0()
 //    suspendFuctionSuspendResumeStudy()
-    suspendSuspendCoroutineNotBlockThreadStudy()
+//    suspendCoroutineNotBlockThreadStudy()
+    coroutineRunThreadWhenResume()
+}
+
+/**
+ * 协程恢复后，运行在哪个线程的示例
+ */
+private fun coroutineRunThreadWhenResume() {
+    runBlocking {
+        launch {
+            println("main runBlocking, i am working in thread ${Thread.currentThread().name}")
+            delay(300L)
+            println("main runBlocking, after delay in thread ${Thread.currentThread().name}")
+        }
+
+        launch(Dispatchers.Unconfined) {
+            println("unconfined, i am working in thread ${Thread.currentThread().name}")
+            delay(300L)
+            println("unconfined, after delay in thread ${Thread.currentThread().name}")
+        }
+    }
 }
 
 /**
  * 挂起函数会挂起协程，不会阻塞线程示例
  */
-private fun suspendSuspendCoroutineNotBlockThreadStudy() {
+private fun suspendCoroutineNotBlockThreadStudy() {
     val job = GlobalScope.launch {
         println("launch start")
         delay(5L)

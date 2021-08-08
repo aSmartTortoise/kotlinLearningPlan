@@ -47,6 +47,12 @@ import kotlin.system.measureTimeMillis
  *      runBlocking是桥接阻塞代码和挂起代码之间的桥梁。可在内部运行挂起函数，在其内部的所有子协程任务
  *  执行完之前是阻塞线程的。
  *      coroutineScope是个挂起函数。未完待续......
+ *  18.6 协程上下文与调度器
+ *  18.6.1 子协程
+ *      在一个协程中创建并启动一个新协程，新协程将继承父协程的上下文，而且子协程的任务Job会成为父协
+ *  程Job的子Job。当父协程的Job被取消后，它的子协程的Job也会被取消。
+ *      但是通过GlobalScope.launch创建的协程，该协程没有父协程，该协程与启动它的协程无关。
+ *
  *
  *
  *
@@ -209,15 +215,46 @@ import kotlin.system.measureTimeMillis
 //
 //
 //}
+fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
 fun main() {
+//    runBlockingFunctionStudy0()
+    childCoroutineStudy0()
+}
+
+private fun childCoroutineStudy0() {
+    runBlocking {
+        val request = launch {
+            GlobalScope.launch {
+                log("job1: i run in GlobalScope and execute independently!")
+                delay(1000L)
+                log("job1: i am not affected by cancellation by the request!")
+            }
+
+            launch {
+                delay(100L)
+                log("job2: i am a child of the request coroutine!")
+                delay(1000L)
+                log("job2: i will not execute this line if my parent request is cancelled.")
+            }
+        }
+        delay(500L)
+        request.cancel()
+        delay(1000)
+        log("main: who has survived request cancellation?")
+    }
+}
+
+private fun runBlockingFunctionStudy0() {
     /**
      *  runBlocking函数，开启一个主协程，并在主携程内开启一个子协程，子携程的任务会阻塞主线程，当子
      *  协程的任务执行完后，才会继续执行主线程的代码。
      */
     runBlocking {
         launch {
-            println("delay before, the time is ${System.currentTimeMillis()} and workking" +
-                    " in thread ${Thread.currentThread().name}")
+            println(
+                "delay before, the time is ${System.currentTimeMillis()} and workking" +
+                        " in thread ${Thread.currentThread().name}"
+            )
             delay(3000L)
             println("World")
             println("delay after, the time is ${System.currentTimeMillis()}")
@@ -227,6 +264,7 @@ fun main() {
     println("Hello")
     println("main the time is ${System.currentTimeMillis()}")
 }
+
 private suspend fun asyncFunctionStudy() {
     coroutineScope {
         val time = measureTimeMillis {
