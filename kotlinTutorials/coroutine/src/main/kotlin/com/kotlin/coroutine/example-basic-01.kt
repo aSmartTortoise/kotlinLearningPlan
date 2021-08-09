@@ -52,13 +52,48 @@ import kotlin.system.measureTimeMillis
  *      在一个协程中创建并启动一个新协程，新协程将继承父协程的上下文，而且子协程的任务Job会成为父协
  *  程Job的子Job。当父协程的Job被取消后，它的子协程的Job也会被取消。
  *      但是通过GlobalScope.launch创建的协程，该协程没有父协程，该协程与启动它的协程无关。
- *
- *
- *
- *
+ *      父协程总是等待所有的子协程执行结束。
+ *      有时候我们需要在协程的上下文中定义多个元素，可以使用+操作符来实现。
+ *  18.7 异步流
  *
  */
+fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
+val threadLocal = ThreadLocal<String?>()
+fun main() {
+//    runBlockingFunctionStudy0()
+//    childCoroutineStudy0()
+//    threadLocalData()
 
+}
+
+/**
+ * 线程的局部数据在协程中的使用。
+ */
+private fun threadLocalData() {
+    runBlocking {
+        threadLocal.set("main")
+        println(
+            "pre-main:current thread: ${Thread.currentThread().name}" +
+                    " threadLocal value:${threadLocal.get()}"
+        )
+        val job = launch(Dispatchers.Default + threadLocal.asContextElement(value = "launch")) {
+            println(
+                "launch start, current thread: ${Thread.currentThread().name}" +
+                        " threadLocal value: ${threadLocal.get()}"
+            )
+            yield()
+            println(
+                "after yield: current thread:${Thread.currentThread().name}" +
+                        " threadLocal value: ${threadLocal.get()}"
+            )
+        }
+        job.join()
+        println(
+            "post-main: current thread:${Thread.currentThread().name}" +
+                    " threadLocal value: ${threadLocal.get()}"
+        )
+    }
+}
 
 //fun main(args: Array<String>) {
 //    startGlobalScopeCoroutin()
@@ -215,15 +250,11 @@ import kotlin.system.measureTimeMillis
 //
 //
 //}
-fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
-fun main() {
-//    runBlockingFunctionStudy0()
-    childCoroutineStudy0()
-}
+
 
 private fun childCoroutineStudy0() {
     runBlocking {
-        val request = launch {
+        val request = launch(Dispatchers.Default + CoroutineName("request")) {
             GlobalScope.launch {
                 log("job1: i run in GlobalScope and execute independently!")
                 delay(1000L)
