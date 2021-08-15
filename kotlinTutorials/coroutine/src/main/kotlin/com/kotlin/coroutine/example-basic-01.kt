@@ -177,7 +177,7 @@ fun main() {
 }
 
 /**
- * cacellable操作符可以声明流的发射器中的操作是可以取消的。
+ * cancellable操作符可以声明流的发射器中的操作是可以取消的。
  */
 private fun flowStudy26Cancellable() {
     runBlocking {
