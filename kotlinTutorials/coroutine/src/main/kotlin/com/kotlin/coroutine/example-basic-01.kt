@@ -62,7 +62,8 @@ import kotlin.system.measureTimeMillis
  *      transform操作符；使用transform操作符，可以在其代码块儿中发射任意值，发射任意次。
  *      take操作符；在流触及响应的限制的时候，流会被取消。协程中的取消操作总是通过抛出异常来实现。会
  *  抛出异常：kotlinx.coroutines.flow.internal.AbortFlowException: Flow was aborted, no more elements needed
- *
+ *      conflate操作符；当发射和收集的处理都很慢的时候，合并是加快处理速度的一种方式。
+ *      collectLatest
  *
  */
 fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
@@ -116,6 +117,12 @@ fun getFlow3(): Flow<Int> = flow {
     }
 }
 
+fun request(i: Int): Flow<String> = flow {
+    emit("$i:first")
+    delay(500)
+    emit("$i:second")
+}
+
 fun main() {
 //    runBlockingFunctionStudy0()
 //    childCoroutineStudy0()
@@ -133,7 +140,72 @@ fun main() {
 //    flowStudy10FlowOn()
 //    flwStudy11NotBuffer()
 //    flowStudy12Buffer()
-    flowStudy13Conflate()
+//    flowStudy13Conflate()
+//    flowStudy14CollectLatest()
+//    flowStudy15Zip()
+//    flowStudy16FlatMapConcat()
+//    flowStudy17FlatMapMerge()
+    flowStudy18FlatMapLatest()
+
+}
+
+private fun flowStudy18FlatMapLatest() {
+    runBlocking {
+        val startTime = System.currentTimeMillis()
+        (1..3).asFlow().onEach { delay(100) }
+            .flatMapLatest { request(it) }
+            .collect {
+                println("$it ${System.currentTimeMillis() - startTime} ms from start.")
+            }
+    }
+}
+
+private fun flowStudy17FlatMapMerge() {
+    runBlocking {
+        val startTime = System.currentTimeMillis()
+        (1..3).asFlow().onEach { delay(100) }
+            .flatMapMerge { request(it) }
+            .collect {
+                println("$it ${System.currentTimeMillis() - startTime} ms from start.")
+            }
+    }
+}
+
+/**
+ * flatMapConcat操作符
+ */
+private fun flowStudy16FlatMapConcat() {
+    runBlocking {
+        val startTime = System.currentTimeMillis()
+        (1..3).asFlow().onEach { delay(100) }
+            .flatMapConcat { request(it) }
+            .collect {
+                println("$it ${System.currentTimeMillis() - startTime} ms from start")
+            }
+    }
+}
+
+private fun flowStudy15Zip() {
+    runBlocking {
+        val numbsers = (1..3).asFlow()
+        val strs = flowOf("one", "two", "three")
+        numbsers.zip(strs) { a, b ->
+            "$a -> $b"
+        }.collect { println("collect $it") }
+    }
+}
+
+private fun flowStudy14CollectLatest() {
+    runBlocking {
+        val time = measureTimeMillis {
+            getFlow3().collectLatest {
+                println("collect $it")
+                delay(300L)
+                println("done $it")
+            }
+        }
+        println("colleted in $time ms")
+    }
 }
 
 /**
