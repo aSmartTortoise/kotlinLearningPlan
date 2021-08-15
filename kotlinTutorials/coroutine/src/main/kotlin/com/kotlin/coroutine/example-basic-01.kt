@@ -64,6 +64,8 @@ import kotlin.system.measureTimeMillis
  *  抛出异常：kotlinx.coroutines.flow.internal.AbortFlowException: Flow was aborted, no more elements needed
  *      conflate操作符；当发射和收集的处理都很慢的时候，合并是加快处理速度的一种方式。
  *      collectLatest
+ *      流完成后的处理可以在命令式的finally代码块中实现，也可以在声明式的onCompletion的操作符函数
+ *  中实现。
  *
  */
 fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
@@ -123,6 +125,23 @@ fun request(i: Int): Flow<String> = flow {
     emit("$i:second")
 }
 
+fun getFlow4(): Flow<String> = flow {
+    for (i in 1..3) {
+        println("emit:$i")
+        emit(i)
+    }
+}.map {
+    check(it <= 1) { "crashed on $it" }
+    "strin: it"
+}
+
+fun getFlow5(): Flow<Int> = flow {
+    for (i in 1..5) {
+        println("emit $i")
+        emit(i)
+    }
+}
+
 fun main() {
 //    runBlockingFunctionStudy0()
 //    childCoroutineStudy0()
@@ -145,8 +164,122 @@ fun main() {
 //    flowStudy15Zip()
 //    flowStudy16FlatMapConcat()
 //    flowStudy17FlatMapMerge()
-    flowStudy18FlatMapLatest()
+//    flowStudy18FlatMapLatest()
+//    flowStudy19Catch()
+//    flowStudy20Catch()
+//    flowStudy21Catch()
+//    flowStudy22OnCompletion()
+//    flowStudy23OnCompletion()
+//    flowStudy24LaunchIn()
+//    flowStudy25Cancel()
+    flowStudy26Cancellable()
 
+}
+
+/**
+ * cacellable操作符可以声明流的发射器中的操作是可以取消的。
+ */
+private fun flowStudy26Cancellable() {
+    runBlocking {
+        (1..5).asFlow()
+            .cancellable()
+            .collect {
+                if (it == 3) cancel()
+                println("collect $it")
+            }
+    }
+}
+
+/**
+ * flow发出的繁忙循环接收之后才收到取消的异常堆栈，这意味着繁忙循环没有得到取消。
+ */
+private fun flowStudy25Cancel() {
+    runBlocking {
+        (1..5).asFlow()
+            .onCompletion { it?.let { println("caught $it") } }
+            .collect {
+                if (it == 2) cancel()
+                println("collect $it")
+            }
+    }
+}
+
+/**
+ * 末端操作符launchIn可以在单独的协程中启动流的收集。runBlocking作用域等待它的子协程执行完后，在
+ * 执行主线程的代码。
+ */
+private fun flowStudy24LaunchIn() {
+    runBlocking {
+        getFlow5().onEach {
+            println("collect $it")
+        }
+            .onCompletion { println("done") }
+            .launchIn(this)
+        println("main")
+    }
+}
+
+/**
+ * onCompletion 函数中的函数类型参数 Lambda表达式中的可空参数cause可以判断流的完成是否是因为异常
+ * 引起 如果cause不为空，则说明是异常导致流的完成。
+ * onCompletion操作符与catch操作符不同，它不处理异常。当异常放生的时候，异常仍然会流向下游，传递给
+ * onCompletion函数，并向下传递给catch函数，在catch函数中处理异常。
+ */
+private fun flowStudy23OnCompletion() {
+    runBlocking {
+        getFlow5()
+            .onEach {
+                check(it <= 1) { println("collect check $it") }
+                println("collect $it")
+            }.onCompletion { it?.let { println("flow completed exceptionally.") } }
+            .catch { println("caught $it") }
+            .collect()
+    }
+}
+
+private fun flowStudy22OnCompletion() {
+    runBlocking {
+        getFlow5()
+            .onCompletion { println("done") }
+            .collect { println("collect $it") }
+    }
+}
+
+/**
+ * 由于catch操作符只能捕获上游异常，如果下游的代码可能会有异常，则我们可将末端操作符collect代码块
+ * 中的代码逻辑放在上游的onEach操作符中实现，并调用无参的collect函数。
+ */
+private fun flowStudy21Catch() {
+    runBlocking {
+        getFlow5()
+            .onEach {
+                check(it <= 1) { println("collect check $it") }
+                println("collect $it")
+            }.catch { println("caught $it") }
+            .collect()
+    }
+}
+
+private fun flowStudy20Catch() {
+    runBlocking {
+        getFlow5().catch { println("caught $it") }
+            .collect {
+                check(it <= 1) { println("collect check $it") }
+                println("collect $it")
+            }
+    }
+}
+
+/**
+ * catch操作符遵循异常透明性，仅捕获上游异常。
+ */
+private fun flowStudy19Catch() {
+    runBlocking {
+        getFlow4().catch { emit("caught:$it") }
+            .collect {
+                println("collect $it")
+            }
+    }
 }
 
 private fun flowStudy18FlatMapLatest() {
