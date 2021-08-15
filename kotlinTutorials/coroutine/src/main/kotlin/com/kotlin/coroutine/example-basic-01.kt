@@ -1,6 +1,7 @@
 package com.kotlin.coroutine
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import kotlin.concurrent.thread
 import kotlin.system.measureTimeMillis
 
@@ -55,15 +56,251 @@ import kotlin.system.measureTimeMillis
  *      父协程总是等待所有的子协程执行结束。
  *      有时候我们需要在协程的上下文中定义多个元素，可以使用+操作符来实现。
  *  18.7 异步流
+ *      流采用与协程相同的协作取消。
+ *      流的构建器  flow、flowOf、List.asFlow等。
+ *      流与序列的一个重要区别是流的操作符（map、filter）中可以调用挂起函数。
+ *      transform操作符；使用transform操作符，可以在其代码块儿中发射任意值，发射任意次。
+ *      take操作符；在流触及响应的限制的时候，流会被取消。协程中的取消操作总是通过抛出异常来实现。会
+ *  抛出异常：kotlinx.coroutines.flow.internal.AbortFlowException: Flow was aborted, no more elements needed
+ *
  *
  */
 fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
 val threadLocal = ThreadLocal<String?>()
+fun getFlow0(): Flow<Int> = flow {
+    println("flow started!")
+    for (i in 1..3) {
+        delay(100)
+        println("emit $i")
+        emit(i)
+    }
+}
+
+suspend fun performRequest(request: Int): String {
+    delay(1000L)
+    return "response $request"
+}
+
+fun numbers(): Flow<Int> = flow {
+    try {
+        emit(1)
+        emit(2)
+        emit(3)
+    } catch (e: Exception) {
+        println("e: $e")
+    } finally {
+        println("finally in numbers")
+    }
+}
+
+fun getFlow1(): Flow<Int> = flow {
+    withContext(Dispatchers.Default) {
+        for (i in 1..3) {
+            Thread.sleep(100L)
+            emit(i)
+        }
+    }
+}
+
+fun getFlow2(): Flow<Int> = flow {
+    for (i in 1..3) {
+        Thread.sleep(100L)
+        emit(i)
+    }
+}.flowOn(Dispatchers.Default)
+
+fun getFlow3(): Flow<Int> = flow {
+    for (i in 1..3) {
+        delay(100L)
+        emit(i)
+    }
+}
+
 fun main() {
 //    runBlockingFunctionStudy0()
 //    childCoroutineStudy0()
 //    threadLocalData()
+//    flowStudy0()
+//    flowStudy02()
+//    flowStudy03Cancel()
+//    flowStudy04OperatorMap()
+//    flowStudy04TransformOperator()
+//    flowStudy05TakeOperator()
+//    flowStudy06Reduce()
+//    flowStudy07Reduce()
+//    flowStudy08Filter()
+//    flowStudy09WithContext()
+//    flowStudy10FlowOn()
+//    flwStudy11NotBuffer()
+//    flowStudy12Buffer()
+    flowStudy13Conflate()
+}
 
+/**
+ * 虽然第2个元素仍在处理中，但是第一个和第三个已经产生，第二个是conflated，只有最新的第三个被交付给
+ * 了收集器。
+ */
+private fun flowStudy13Conflate() {
+    runBlocking {
+        val time = measureTimeMillis {
+            getFlow3().conflate().collect {
+                delay(300L)
+                println("collect:$it")
+            }
+        }
+        println("collected in $time ms")
+    }
+}
+
+/**
+ * 相对不使用Flow的buffer操作符，使用buffer操作符处理流花费的时间更少了。仅仅需要花费等待第一个元素
+ * 发射等待的时间和处理每一个元素等待的时间之和。
+ */
+private fun flowStudy12Buffer() {
+    runBlocking {
+        val time = measureTimeMillis {
+            getFlow3().buffer().collect {
+                delay(300L)
+                println("collect:$it")
+            }
+        }
+        println("buffer collected in $time ms")
+    }
+}
+
+private fun flwStudy11NotBuffer() {
+    runBlocking {
+        val time = measureTimeMillis {
+            getFlow3().collect {
+                delay(300)
+                println("collect:$it")
+            }
+        }
+        println("collected in $time ms")
+    }
+}
+
+/**
+ * flowOn操作符改变流发射的上下文。流的搜集发生在主线程的某一个协程中，flowOn操作符会创建另一个协
+ * 程，该协程在后台线程中，两个协程的代码同步执行，
+ */
+private fun flowStudy10FlowOn() {
+    runBlocking {
+        getFlow2().collect { println("collect:$it") }
+    }
+}
+
+/**
+ * withContext在协程中改变上下文，flow构建器中的代码遵循上下文保存属性，不允许从其他上下文中发射值
+ * 会出现异常。
+ * Exception in thread "main" java.lang.IllegalStateException: Flow invariant is violated:
+Flow was collected in [BlockingCoroutine{Active}@3baaf4d9, BlockingEventLoop@5e04eedf],
+but emission happened in [DispatchedCoroutine{Active}@76fe6e5e, Dispatchers.Default].
+Please refer to 'flow' documentation or use 'flowOn' instead
+ *
+ *
+ */
+private fun flowStudy09WithContext() {
+    runBlocking {
+        getFlow1().collect { println("collect:$it") }
+    }
+}
+
+private fun flowStudy08Filter() {
+    runBlocking {
+        (1..5).asFlow()
+            .filter {
+                println("filter:$it")
+                it % 2 == 0
+            }
+            .map {
+                println("map:$it")
+                "string:$it"
+            }
+            .collect { println("collect:$it") }
+    }
+}
+
+private fun flowStudy07Reduce() {
+    runBlocking {
+        val result = (1..5).asFlow()
+            .reduce { a, b -> a * b }
+        println(result)
+    }
+}
+
+/**
+ * 求平方和
+ */
+private fun flowStudy06Reduce() {
+    runBlocking {
+        val sum = (1..5).asFlow()
+            .map { it * it }
+            .reduce { a, b -> a + b }
+        println(sum)
+    }
+}
+
+private fun flowStudy05TakeOperator() {
+    runBlocking {
+        numbers()
+            .take(2)
+            .collect { value -> println(value) }
+    }
+}
+
+private fun flowStudy04TransformOperator() {
+    runBlocking {
+        (1..3).asFlow()
+            .transform { value ->
+                emit("make request $value")
+                emit(performRequest(value))
+            }
+            .collect { value -> println(value) }
+    }
+}
+
+private fun flowStudy04OperatorMap() {
+    runBlocking {
+        (1..3).asFlow()
+            .map { value -> performRequest(value) }
+            .collect { value -> println(value) }
+    }
+}
+
+private fun flowStudy03Cancel() {
+    runBlocking {
+        withTimeoutOrNull(250L) {
+            getFlow0().collect { value -> println(value) }
+        }
+        println("Done")
+    }
+}
+
+/**
+ * flow构建器的代码，直到流被收集的时候才会执行。流在每次收集的时候才会启动，
+ */
+private fun flowStudy02() {
+    runBlocking {
+        println("Call getFlow0 function...")
+        val flow = getFlow0()
+        println("call collect...")
+        flow.collect { value -> println(value) }
+        println("call collect again...")
+        flow.collect { value -> println(value) }
+    }
+}
+
+private fun flowStudy0() {
+    runBlocking {
+        launch {
+            for (k in 1..3) {
+                println("i am not blocked $k")
+                delay(100)
+            }
+        }
+        getFlow0().collect { value -> println(value) }
+    }
 }
 
 /**
@@ -303,7 +540,7 @@ private suspend fun asyncFunctionStudy() {
             val two = async { doSomethingUsefulTwo() }
             println("the answer is ${one.await() + two.await()}")
         }
-        println ("complete in $time ms.")
+        println("complete in $time ms.")
     }
 }
 
