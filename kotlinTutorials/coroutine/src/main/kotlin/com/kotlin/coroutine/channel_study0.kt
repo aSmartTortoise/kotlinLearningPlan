@@ -11,6 +11,8 @@ import kotlinx.coroutines.channels.*
  *  道的发送者在挂起前发送多个元素。
  *
  *
+ *
+ *
  */
 
 fun CoroutineScope.produceSquares(): ReceiveChannel<Int> = produce {
@@ -66,7 +68,7 @@ fun main() {
 //    channelStudy06()
 //    channelStudy07Capacity()
 //    channelStudy08()
-    channelStudy09TickerChannel()
+//    channelStudy09TickerChannel()
 
 }
 
