@@ -17,6 +17,9 @@ import java.lang.RuntimeException
  *  coroutineScope函数包裹的子协程发生的异常，该异常可以被重新抛出，并在Job层次结构中进行传播。而
  *  supervisorScope包裹的协程，会创建一个新的独立作用域，并将SupervisorJob作为其Job，该异常不会
  *  在Job层次结构中传播，该协程属于顶级协程。
+ *  19.3 取消与异常
+ *      协程内部通过CancellationException来取消。当调用job.cancel的时候，协程会被终止，但是它的
+ *  父协程不会取消。
  *
  *
  **/
