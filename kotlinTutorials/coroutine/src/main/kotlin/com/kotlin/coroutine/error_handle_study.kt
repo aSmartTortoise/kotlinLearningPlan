@@ -13,12 +13,16 @@ import java.lang.RuntimeException
  *      如果要在协程完成之前重试该操作或尝试其他操作，使用try-catch。通过在协程中捕获异常（try-catch），该异常不会在Job
  *  层次结构中传播，也不会利用结构化并发的取消功能。而CoroutineExceptionHandler是处理协程完成后发生的逻辑。绝大多数，我
  *  们使用CoroutineExceptionHandler。
+ *  19.2 coroutineScope函数 异常处理特性
+ *  coroutineScope函数包裹的子协程发生的异常，该异常可以被重新抛出，并在Job层次结构中进行传播。而
+ *  supervisorScope包裹的协程，会创建一个新的独立作用域，并将SupervisorJob作为其Job，该异常不会
+ *  在Job层次结构中传播，该协程属于顶级协程。
  *
  *
  **/
 
 fun main() {
-    coroutineStudy01Exception()
+//    coroutineStudy01Exception()
 //    coroutineStudy02Exception()
 //    coroutineStudy03Exception()
 //    coroutineStudy04ExceptionHandler()
@@ -27,6 +31,87 @@ fun main() {
 //    coroutineStudy07ExceptionAsync()
 //    coroutineStudy08ExceptionAsync()
 //    coroutineStudy09ExceptionAsync()
+//    coroutineStudy10ExceptionCoroutineScope()
+//    coroutineStudy11ExceptionSupervisorScope()
+    coroutineStudyExceptionSupervisorScope()
+}
+
+/**
+ * supervisorScope函数包裹的由launch创建的协程是顶级协程，该协程中发生的异常，可以在
+ * CoroutineExceptinHandler中被捕获
+ */
+private fun coroutineStudyExceptionSupervisorScope() {
+    val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+        println("handle $throwable in handler.")
+    }
+
+    val topLevelScope = CoroutineScope(Job())
+    topLevelScope.launch {
+        val job1 = launch {
+            println("starting coroutin 1.")
+        }
+
+        supervisorScope {
+            val job2 = launch(exceptionHandler) {
+                println("starting coroutine 2.")
+                throw RuntimeException("RuntimeException in coroutine 2.")
+            }
+
+            val job3 = launch {
+                println("starting coroutine 3.")
+            }
+        }
+    }
+
+    Thread.sleep(100L)
+}
+
+/**
+ * supervisorScope是一个必须独立处理异常的独立作用域。它不会像coroutineScope函数那样重新抛出异
+ * 常，也不会将异常传播该父级Job中。异常只会向上传播并到达顶级Job或SupervisorJob。这意味着本例中
+ * job2和job3是顶级作业对应的协程是顶级的。
+ */
+private fun coroutineStudy11ExceptionSupervisorScope() {
+    val topLevleScope = CoroutineScope(Job())
+    topLevleScope.launch {
+        val job1 = launch {
+            println("starting coroutine 1.")
+        }
+
+        supervisorScope {
+            val job2 = launch {
+                println("starting coroutine 2.")
+            }
+
+            val job3 = launch {
+                println("starting coroutine 3.")
+            }
+        }
+    }
+
+    Thread.sleep(100L)
+}
+
+/**
+ * 有launch构建的子协程，被coroutineScope函数所包裹，并且在子协程中发生了异常，这样异常不会传播
+ * 到Job层次结构中，如果只对该子协程使用try-catch语句是可以捕获到异常的。
+ * coroutineScope函数主要用在suspend函数中已实现“并行分解”，这些suspend函数将重新抛出其失败协程
+ * 的异常，我们可以使用try-catch捕获异常。
+ */
+private fun coroutineStudy10ExceptionCoroutineScope() {
+    val topLevelScope = CoroutineScope(SupervisorJob())
+    topLevelScope.launch {
+        try {
+            coroutineScope {
+                launch {
+                    throw RuntimeException("RuntimeExceptin in child launch coroutine.")
+                }
+            }
+        } catch (e: Exception) {
+            println("handle $e in try-catch.")
+        }
+    }
+    Thread.sleep(100L)
 }
 
 /**
