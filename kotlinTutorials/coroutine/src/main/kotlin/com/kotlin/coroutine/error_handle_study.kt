@@ -10,20 +10,76 @@ import java.lang.RuntimeException
  *      被取消的协程会在挂起点抛出CancellationException并且会被协程的机制忽略。
  *  19.1 异常的传播
  *   https://juejin.cn/post/6935472332735512606
+ *      如果要在协程完成之前重试该操作或尝试其他操作，使用try-catch。通过在协程中捕获异常（try-catch），该异常不会在Job
+ *  层次结构中传播，也不会利用结构化并发的取消功能。而CoroutineExceptionHandler是处理协程完成后发生的逻辑。绝大多数，我
+ *  们使用CoroutineExceptionHandler。
+ *
  *
  **/
 
 fun main() {
-//    coroutineStudy01Exception()
+    coroutineStudy01Exception()
 //    coroutineStudy02Exception()
 //    coroutineStudy03Exception()
 //    coroutineStudy04ExceptionHandler()
 //    coroutineStudy05ExceptionHandler()
-    coroutineStudy06ExceptionHandler()
+//    coroutineStudy06ExceptionHandler()
+//    coroutineStudy07ExceptionAsync()
+//    coroutineStudy08ExceptionAsync()
+//    coroutineStudy09ExceptionAsync()
 }
 
 /**
- *  在构建顶层于CoroutineScope的时候向其构造方法中传入CoroutineExceptionHanlder，并在启动
+ *  async构建的非顶级协程中发生了异常，该异常会传播到Job的层次结构中，并有CoroutineExceptionHandler捕获，甚至传递该
+ *  线程的未捕获的异常程序，即使不调用await函数。
+ */
+private fun coroutineStudy09ExceptionAsync() {
+    val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
+        println("handle $throwable in handler")
+    }
+    val topLevelScope = CoroutineScope(SupervisorJob() + exceptionHandler)
+    topLevelScope.launch {
+        async {
+            throw RuntimeException("RuntimeException in async coroutine.")
+        }
+    }
+    Thread.sleep(100L)
+}
+
+/**
+ * async启动的顶层协程中发生了异常，在当Deferred调用await函数的时候是会抛出异常的。
+ */
+private fun coroutineStudy08ExceptionAsync() {
+    val topLevelScope = CoroutineScope(SupervisorJob())
+    val deferred = topLevelScope.async {
+        throw RuntimeException("RuntimeException in async coroutine.")
+    }
+    topLevelScope.launch {
+        try {
+            deferred.await()
+        } catch (e: Exception) {
+            println("handle $e in try-catch.")
+        }
+    }
+
+    Thread.sleep(100L)
+}
+
+/**
+ * async构建的顶级携程中throw RuntimeException，且不调用await函数，则运行程序，不会抛出异常。
+ *  async构建的携程的返回结果是Deferred是一种特殊的Job，有结果的，如果对应的协程中发生异常，会将异常封装在Deferred中，
+ *  所以如果不调用await函数是不会抛出异常的。
+ */
+private fun coroutineStudy07ExceptionAsync() {
+    val topLevelScope = CoroutineScope(SupervisorJob())
+    topLevelScope.async {
+        throw RuntimeException("runTimeException in async coroutine.")
+    }
+    Thread.sleep(100L)
+}
+
+/**
+ *  在构建顶层域CoroutineScope的时候向其构造方法中传入CoroutineExceptionHanlder，并在启动
  *  子协程的构建器中传入同一个CoroutineExceptionHandler的对象。如此在子协程发生异常的时候
  *  CoroutineExceptionHandler可以捕获到异常。
  */
@@ -114,6 +170,9 @@ private fun coroutineStudy02Exception() {
     Thread.sleep(100L)
 }
 
+/**
+ *  由launch构建的顶级协程中发生的异常，异常将由CoroutineExceptionHandler处理或传播给线程的未捕获的异常程序。
+ */
 private fun coroutineStudy01Exception() {
     runBlocking {
         val job = GlobalScope.launch {
