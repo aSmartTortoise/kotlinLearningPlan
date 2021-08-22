@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Environment
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.multidex.MultiDexApplication
 import com.kotlin.wanandroid.constant.Constant
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
@@ -26,7 +27,7 @@ import org.litepal.LitePal
 import java.util.*
 import kotlin.properties.Delegates
 
-class WanAndroidApplication: Application() {
+class WanAndroidApplication: MultiDexApplication() {
 
     private var refWatcher: RefWatcher? = null
 
