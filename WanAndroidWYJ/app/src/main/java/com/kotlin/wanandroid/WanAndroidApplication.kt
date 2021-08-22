@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Environment
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.multidex.MultiDexApplication
 import com.kotlin.wanandroid.constant.Constant
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
@@ -26,7 +27,7 @@ import org.litepal.LitePal
 import java.util.*
 import kotlin.properties.Delegates
 
-class WanAndroidApplication: Application() {
+class WanAndroidApplication: MultiDexApplication() {
 
     private var refWatcher: RefWatcher? = null
 
@@ -82,17 +83,17 @@ class WanAndroidApplication: Application() {
     }
 
     companion object {
-        var context: Context by Delegates.notNull()
-            private set
-        lateinit var instance: WanAndroidApplication
-
-        var userInfo: UserInfoBody? = null
         val TAG = "wan_android"
+        var context: Context by Delegates.notNull()
+
+        lateinit var instance: WanAndroidApplication
 
         fun getRefWatcher(context: Context): RefWatcher? {
             val app = context.applicationContext as WanAndroidApplication
             return app.refWatcher
         }
+
+        var userInfo: UserInfoBody? = null
     }
 
     override fun onCreate() {
@@ -116,10 +117,10 @@ class WanAndroidApplication: Application() {
 
     private fun initConfig() {
         val formatStrategy = PrettyFormatStrategy.newBuilder()
-            .showThreadInfo(false)
-            .methodCount(0)
-            .methodOffset(7)
-            .tag(TAG)
+            .showThreadInfo(false)// 隐藏线程信息 默认：显示
+            .methodCount(0)// 决定打印多少行（每一行代表一个方法）默认：2
+            .methodOffset(7)// (Optional) Hides internal method calls up to offset. Default 5
+            .tag(TAG)// (Optional) Global tag for every log. Default PRETTY_LOGGER
             .build()
         Logger.addLogAdapter(object: AndroidLogAdapter(formatStrategy) {
             override fun isLoggable(priority: Int, tag: String?): Boolean {
