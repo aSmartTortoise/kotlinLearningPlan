@@ -24,6 +24,8 @@ import org.greenrobot.eventbus.ThreadMode
 
 abstract class BaseActivity: AppCompatActivity() {
 
+    protected var isLogin: Boolean by Preference(Constant.LOGIN_KEY, false)
+
     lateinit var mTipView: View
     lateinit var mWindowManager: WindowManager//延迟初始化属性，该属性为非空类型
     lateinit var mLayoutParams: WindowManager.LayoutParams
