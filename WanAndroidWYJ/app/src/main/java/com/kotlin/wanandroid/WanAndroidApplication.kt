@@ -175,11 +175,17 @@ class WanAndroidApplication: MultiDexApplication() {
         Beta.defaultBannerId = R.mipmap.ic_launcher
         Beta.storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         Beta.showInterruptedStrategy = false
+
+        Beta.upgradeStateListener = mUpgradeStateListener
+        // 自定义更新布局要设置在 init 之前
+        // R.layout.layout_upgrade_dialog 文件要注意两点
+        // 注意1: 半透明背景要自己加上
+        // 注意2: 即使自定义的弹窗不需要title, info等这些信息, 也需要将对应的tag标出出来, 一共有5个
+        Beta.upgradeDialogLayoutId = R.layout.layout_upgrade_dialog
+        //获取当前进程名
         val processName = CommonUtil.getProcessName(android.os.Process.myPid())
         val strategy = CrashReport.UserStrategy(applicationContext)
         strategy.isUploadProcess = false || processName == applicationContext.packageName
-        Beta.upgradeStateListener = mUpgradeStateListener
-        Beta.upgradeDialogLayoutId = R.layout.layout_upgrade_dialog
         Bugly.init(context, Constant.BUGLY_ID, BuildConfig.DEBUG, strategy)
     }
 
