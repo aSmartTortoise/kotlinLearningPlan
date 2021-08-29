@@ -1,4 +1,4 @@
-package com.kotlin.wanandroid.ui.base
+package com.kotlin.wanandroid.base
 
 import android.content.Context
 import android.content.IntentFilter

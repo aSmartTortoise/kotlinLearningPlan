@@ -1,10 +1,10 @@
 package com.kotlin.wanandroid.ui.activity
 
-import android.util.Log
+import android.content.Intent
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
 import com.kotlin.wanandroid.R
-import com.kotlin.wanandroid.ui.base.BaseActivity
+import com.kotlin.wanandroid.base.BaseActivity
 import kotlinx.android.synthetic.main.activity_splash.*
 
 class SplashActivity : BaseActivity() {
@@ -43,7 +43,10 @@ class SplashActivity : BaseActivity() {
     }
 
     fun jumpToMain() {
-        Log.d("Splash", "jumpToMain: wyj")
+        val intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
+        finish()
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 
 }
