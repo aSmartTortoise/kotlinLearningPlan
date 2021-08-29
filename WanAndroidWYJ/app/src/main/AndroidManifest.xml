@@ -41,6 +41,8 @@
         </activity>
 
         <activity android:name=".ui.MainActivity" />
+
+        <receiver android:name=".receiver.NetWorkChangeReceiver"/>
     </application>
 
 </manifest>

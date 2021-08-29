@@ -25,19 +25,18 @@ import org.greenrobot.eventbus.ThreadMode
 abstract class BaseActivity: AppCompatActivity() {
 
     protected var isLogin: Boolean by Preference(Constant.LOGIN_KEY, false)
+    protected var hasNetwork: Boolean by Preference(Constant.HAS_NETWORK_KEY, true)
+    private var mNetWorkChangeReceiver: NetWorkChangeReceiver? = null
+    protected var mThemeColor: Int = SettingUtil.getColor()
 
+    protected var mLayoutStatusView: MultipleStatusView? = null
     lateinit var mTipView: View
     lateinit var mWindowManager: WindowManager//延迟初始化属性，该属性为非空类型
     lateinit var mLayoutParams: WindowManager.LayoutParams
-    protected var mLayoutStatusView: MultipleStatusView? = null
+
     open val mRetryClickListener: View.OnClickListener = View.OnClickListener {
         start()
     }
-    private var mNetWorkChangeReceiver: NetWorkChangeReceiver? = null
-
-    protected var mThemeColor: Int = SettingUtil.getColor()
-
-    protected var hasNetwork: Boolean by Preference(Constant.HAS_NETWORK_KEY, true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN)
@@ -53,7 +52,7 @@ abstract class BaseActivity: AppCompatActivity() {
         initListener()
     }
 
-    abstract fun attachLayoutRes(): Int
+    protected abstract fun attachLayoutRes(): Int
 
     open fun useEventBus(): Boolean = true
 
@@ -64,7 +63,8 @@ abstract class BaseActivity: AppCompatActivity() {
         mWindowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
         mLayoutParams = WindowManager.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.TYPE_APPLICATION,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            WindowManager.LayoutParams.TYPE_APPLICATION,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
             PixelFormat.TRANSLUCENT
         )
@@ -178,7 +178,7 @@ abstract class BaseActivity: AppCompatActivity() {
 
     override fun onPause() {
         mNetWorkChangeReceiver?.let {
-            unregisterReceiver(mNetWorkChangeReceiver)
+            unregisterReceiver(it)
             mNetWorkChangeReceiver = null
         }
         super.onPause()
@@ -199,7 +199,4 @@ abstract class BaseActivity: AppCompatActivity() {
             mWindowManager.removeView(mTipView)
         }
     }
-
-
-
 }
