@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Bundle
 import android.os.Environment
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.multidex.MultiDexApplication
 import com.kotlin.wanandroid.constant.Constant
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
@@ -26,7 +27,7 @@ import org.litepal.LitePal
 import java.util.*
 import kotlin.properties.Delegates
 
-class WanAndroidApplication: Application() {
+class WanAndroidApplication: MultiDexApplication() {
 
     private var refWatcher: RefWatcher? = null
 
@@ -82,17 +83,17 @@ class WanAndroidApplication: Application() {
     }
 
     companion object {
-        var context: Context by Delegates.notNull()
-            private set
-        lateinit var instance: WanAndroidApplication
-
-        var userInfo: UserInfoBody? = null
         val TAG = "wan_android"
+        var context: Context by Delegates.notNull()
+
+        lateinit var instance: WanAndroidApplication
 
         fun getRefWatcher(context: Context): RefWatcher? {
             val app = context.applicationContext as WanAndroidApplication
             return app.refWatcher
         }
+
+        var userInfo: UserInfoBody? = null
     }
 
     override fun onCreate() {
@@ -116,10 +117,10 @@ class WanAndroidApplication: Application() {
 
     private fun initConfig() {
         val formatStrategy = PrettyFormatStrategy.newBuilder()
-            .showThreadInfo(false)
-            .methodCount(0)
-            .methodOffset(7)
-            .tag(TAG)
+            .showThreadInfo(false)// 隐藏线程信息 默认：显示
+            .methodCount(0)// 决定打印多少行（每一行代表一个方法）默认：2
+            .methodOffset(7)// (Optional) Hides internal method calls up to offset. Default 5
+            .tag(TAG)// (Optional) Global tag for every log. Default PRETTY_LOGGER
             .build()
         Logger.addLogAdapter(object: AndroidLogAdapter(formatStrategy) {
             override fun isLoggable(priority: Int, tag: String?): Boolean {
@@ -174,11 +175,17 @@ class WanAndroidApplication: Application() {
         Beta.defaultBannerId = R.mipmap.ic_launcher
         Beta.storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
         Beta.showInterruptedStrategy = false
+
+        Beta.upgradeStateListener = mUpgradeStateListener
+        // 自定义更新布局要设置在 init 之前
+        // R.layout.layout_upgrade_dialog 文件要注意两点
+        // 注意1: 半透明背景要自己加上
+        // 注意2: 即使自定义的弹窗不需要title, info等这些信息, 也需要将对应的tag标出出来, 一共有5个
+        Beta.upgradeDialogLayoutId = R.layout.layout_upgrade_dialog
+        //获取当前进程名
         val processName = CommonUtil.getProcessName(android.os.Process.myPid())
         val strategy = CrashReport.UserStrategy(applicationContext)
         strategy.isUploadProcess = false || processName == applicationContext.packageName
-        Beta.upgradeStateListener = mUpgradeStateListener
-        Beta.upgradeDialogLayoutId = R.layout.layout_upgrade_dialog
         Bugly.init(context, Constant.BUGLY_ID, BuildConfig.DEBUG, strategy)
     }
 

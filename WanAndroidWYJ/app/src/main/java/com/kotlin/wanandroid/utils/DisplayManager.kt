@@ -2,44 +2,31 @@ package com.kotlin.wanandroid.utils
 
 import android.content.Context
 import android.util.DisplayMetrics
+import kotlin.properties.Delegates
 
 /**
  * Created by chenxz on 2018/4/21.
  */
 object DisplayManager {
-    init {
-
-    }
-
     private var displayMetrics: DisplayMetrics? = null
 
-    private var screenWidth: Int? = null
+    private var screenWidth: Int by Delegates.notNull<Int>()
 
-    private var screenHeight: Int? = null
+    private var screenHeight: Int by Delegates.notNull<Int>()
 
-    private var screenDpi: Int? = null
+    private var screenDpi: Int by Delegates.notNull<Int>()
 
     fun init(context: Context) {
         displayMetrics = context.resources.displayMetrics
-        screenWidth = displayMetrics?.widthPixels
-        screenHeight = displayMetrics?.heightPixels
-        screenDpi = displayMetrics?.densityDpi
+        screenWidth = displayMetrics?.widthPixels ?: 0
+        screenHeight = displayMetrics?.heightPixels ?: 0
+        screenDpi = displayMetrics?.densityDpi ?: 0
     }
 
 
     //UI图的大小
     private val STANDARD_WIDTH = 1080
     private val STANDARD_HEIGHT = 1920
-
-
-    fun getScreenWidth(): Int? {
-        return screenWidth
-    }
-
-    fun getScreenHeight(): Int? {
-        return screenHeight
-    }
-
 
     /**
      * 传入UI图中问题的高度，单位像素
@@ -69,7 +56,7 @@ object DisplayManager {
      * @return
      */
     fun getRealWidth(px: Int, parentWidth: Float): Int {
-        return (px / parentWidth * getScreenWidth()!!).toInt()
+        return (px / parentWidth * screenWidth).toInt()
     }
 
     /**
@@ -91,7 +78,7 @@ object DisplayManager {
      * @return
      */
     fun getRealHeight(px: Int, parentHeight: Float): Int {
-        return (px / parentHeight * getScreenHeight()!!).toInt()
+        return (px / parentHeight * screenHeight).toInt()
     }
 
     /**
