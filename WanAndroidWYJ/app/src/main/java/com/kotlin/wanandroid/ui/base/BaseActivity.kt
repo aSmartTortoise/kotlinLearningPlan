@@ -90,7 +90,7 @@ abstract class BaseActivity: AppCompatActivity() {
         val intentFilter = IntentFilter()
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE")
         mNetWorkChangeReceiver = NetWorkChangeReceiver()
-        unregisterReceiver(mNetWorkChangeReceiver)
+        registerReceiver(mNetWorkChangeReceiver, intentFilter)
         super.onResume()
         initColor()
     }
