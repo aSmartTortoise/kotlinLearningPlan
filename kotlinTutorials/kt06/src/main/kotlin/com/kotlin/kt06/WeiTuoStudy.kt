@@ -6,6 +6,7 @@ import kotlin.reflect.KProperty
 /**
  *  15 委托
  *      https://www.runoob.com/kotlin/kotlin-delegated.html
+ *      https://juejin.cn/post/6844903683214278670
  *      委托模式是软件设计中的一项基本技巧。在委托模式中有两个对象处理同一个请求，接收请求的对象将
  *      请求委托给另一个对象处理。Kotlin中使用by标识符来实现委托。
  *      委托分为类委托、属性委托。
@@ -42,6 +43,7 @@ import kotlin.reflect.KProperty
  *      15.7 NOT NULL
  *          not null使用于那些一个类的对象在初始化阶段尚不能确定某个属性的值的场合。如果该属性在初始化前
  *          就去访问该属性就会抛出异常。
+ *
  *      15.8 属性委托要求
  *          对于只读属性，被委托的类需要提供一个操作符函数getValue。该函数接受连个参数，第一个
  *          thisRef为该属性的接受者类型或其超类，第二个属性property为KProperty<*>类型或其超类。
