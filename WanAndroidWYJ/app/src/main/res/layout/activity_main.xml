@@ -31,6 +31,17 @@
             app:layout_behavior=".widget.behavior.BottomNavigationBehavior"
             app:menu="@menu/bottom_navigation_main" />
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/floating_action_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="@dimen/dp_20"
+            android:layout_marginRight="@dimen/dp_20"
+            android:layout_marginBottom="@dimen/dp_60"
+            app:layout_behavior=".widget.behavior.ScaleDownShowBehavior"
+            app:srcCompat="@drawable/ic_arrow_upward_white_24dp" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.google.android.material.navigation.NavigationView

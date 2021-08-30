@@ -9,10 +9,10 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:gravity="center"
-        android:paddingBottom="@dimen/dp_4"
         android:paddingLeft="@dimen/dp_10"
-        android:paddingRight="@dimen/dp_10"
         android:paddingTop="@dimen/dp_4"
+        android:paddingRight="@dimen/dp_10"
+        android:paddingBottom="@dimen/dp_4"
         android:text="@string/network_unavailable_tip"
         android:textColor="@color/Red" />
 
