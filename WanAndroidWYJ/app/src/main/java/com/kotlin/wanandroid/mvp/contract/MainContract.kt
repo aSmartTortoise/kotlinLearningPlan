@@ -14,7 +14,7 @@ interface MainContract {
         fun showUserInfo(bean: UserInfoBody)
     }
 
-    interface Preseter : IPresenter<View> {
+    interface Presenter : IPresenter<View> {
         fun logout()
         fun getUserInfo()
     }

@@ -12,12 +12,13 @@ import com.kotlin.wanandroid.base.BaseMVPActivity
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.contract.MainContract
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
+import com.kotlin.wanandroid.mvp.presenter.MainPresenter
 import com.kotlin.wanandroid.utils.SettingUtil
 import com.tencent.bugly.beta.Beta
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
 
-class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Preseter>(), MainContract.View {
+class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(), MainContract.View {
     private val BOTTOM_INDEX: String = "bottom_index"
     private val TAG = "MainActivity"
 
@@ -153,7 +154,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Preseter>()
     override fun start() {
     }
 
-    override fun createPrenter(): MainContract.Preseter = MainP
+    override fun createPrenter(): MainContract.Presenter = MainPresenter()
 
     override fun showLogoutSuccess(success: Boolean) {
         TODO("Not yet implemented")
