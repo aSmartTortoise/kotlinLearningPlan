@@ -20,7 +20,7 @@ import io.reactivex.disposables.Disposable
  * @desc
  */
 
-fun <T : BaseBean> Observable<T>.ss(
+fun <T: BaseBean> Observable<T>.ss(
     model: IModel?,
     view: IView?,
     isShowLoading: Boolean = true,

@@ -1,5 +1,6 @@
 package com.kotlin.wanandroid.ui.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -164,15 +165,13 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
                 text = if (!mIsLogin) getString(R.string.go_login) else mUsername
                 setOnClickListener {
                     if (!mIsLogin) {
-                        showMsg("去登录")
+                        Intent(this@MainActivity, LoginActivity::class.java).run {
+                            startActivity(this)
+                        }
                     }
                 }
             }
-
-
         }
-
-
     }
 
     private fun initDrawerLayout() {
