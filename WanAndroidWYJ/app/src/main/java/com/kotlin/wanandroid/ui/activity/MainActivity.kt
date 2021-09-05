@@ -2,6 +2,9 @@ package com.kotlin.wanandroid.ui.activity
 
 import android.os.Bundle
 import android.util.Log
+import android.view.Gravity
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -9,10 +12,12 @@ import com.google.android.material.bottomnavigation.LabelVisibilityMode
 import com.google.android.material.navigation.NavigationView
 import com.kotlin.wanandroid.R
 import com.kotlin.wanandroid.base.BaseMVPActivity
+import com.kotlin.wanandroid.constant.Constant
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.contract.MainContract
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
 import com.kotlin.wanandroid.mvp.presenter.MainPresenter
+import com.kotlin.wanandroid.utils.Preference
 import com.kotlin.wanandroid.utils.SettingUtil
 import com.tencent.bugly.beta.Beta
 import kotlinx.android.synthetic.main.activity_main.*
@@ -46,7 +51,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
         NavigationView.OnNavigationItemSelectedListener { item ->
             when(item.itemId) {
                 R.id.nav_score -> {
-                    if (isLogin) {
+                    if (mIsLogin) {
                         Log.d(TAG, "onNavigationItemSelected wyj: 去积分榜")
                     } else {
                         showToast(resources.getString(R.string.login_tint))
@@ -55,7 +60,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
                 }
 
                 R.id.nav_collect -> {
-                    if (isLogin) {
+                    if (mIsLogin) {
                         Log.d(TAG, "onNavigationItemSelected wyj: collect type")
                     } else {
                         showToast(resources.getString(R.string.login_tint))
@@ -64,7 +69,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
                 }
 
                 R.id.nav_share -> {
-                    if (isLogin) {
+                    if (mIsLogin) {
                         Log.d(TAG, "onNavigationItemSelected wyj: share")
                     } else {
                         showToast(resources.getString(R.string.login_tint))
@@ -93,7 +98,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
                 }
 
                 R.id.nav_todo -> {
-                    if (isLogin) {
+                    if (mIsLogin) {
                         Log.d(TAG, "onNavigationItemSelected wyj: to do")
                     } else {
                         showToast(resources.getString(R.string.login_tint))
@@ -105,9 +110,17 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
             true
 
     }
+    private var mTvUserName: TextView? = null
+    private var mTvUserId: TextView? = null
+    private var mTvUsrGrade: TextView? = null
+    private var mTvUserRank: TextView? = null
+    private var mIvRank: ImageView? = null
+    private var mTvScore: TextView? = null
+    private var mUsername: String by Preference(Constant.USERNAME_KEY, "")
+
     override fun attachLayoutRes(): Int = R.layout.activity_main
 
-    override fun useEventBus(): Boolean = true;
+    override fun useEventBus(): Boolean = true
 
     override fun initData() {
         Beta.checkUpgrade(false, false)
@@ -135,7 +148,31 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     private fun initNavView() {
         nav_view.run {
             setNavigationItemSelectedListener(onDrawerNavigationItemSelectedListener)
+            var headerView = getHeaderView(0)
+            headerView.run {
+                mTvUserName = findViewById(R.id.tv_username)
+                mTvUserId = findViewById(R.id.tv_user_id)
+                mTvUsrGrade = findViewById(R.id.tv_user_grade)
+                mTvUserRank = findViewById(R.id.tv_user_rank)
+                mIvRank = findViewById(R.id.iv_rank)
+            }
+            mTvScore = menu.findItem(R.id.nav_score).actionView as TextView
+            mTvScore?.gravity = Gravity.CENTER_VERTICAL
+            menu.findItem(R.id.nav_logout).isVisible = mIsLogin
+
+            mTvUserName?.run {
+                text = if (!mIsLogin) getString(R.string.go_login) else mUsername
+                setOnClickListener {
+                    if (!mIsLogin) {
+                        showMsg("去登录")
+                    }
+                }
+            }
+
+
         }
+
+
     }
 
     private fun initDrawerLayout() {
@@ -143,6 +180,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
             val toggle = ActionBarDrawerToggle(
                 this@MainActivity,
                 this,
+                toolbar,
                 R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close
             )

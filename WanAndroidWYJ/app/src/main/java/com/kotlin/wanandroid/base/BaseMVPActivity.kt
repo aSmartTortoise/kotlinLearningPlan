@@ -3,7 +3,7 @@ package com.kotlin.wanandroid.base
 import com.kotlin.wanandroid.ext.showToast
 
 @Suppress("UNCHECKED_CAST")
-abstract class BaseMVPActivity<in V : IView, P : IPresenter<V>> : BaseActivity(), IView {
+abstract class BaseMVPActivity<in V: IView, P: IPresenter<V>> : BaseActivity(), IView {
     protected var mPresenter: P? = null
 
     protected abstract fun createPrenter(): P

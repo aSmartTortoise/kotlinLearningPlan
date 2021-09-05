@@ -1,6 +1,6 @@
 package com.kotlin.wanandroid.base
 
-interface IPresenter<in V : IView> {
+interface IPresenter<in V: IView> {
     /**
      * 绑定 View
      */

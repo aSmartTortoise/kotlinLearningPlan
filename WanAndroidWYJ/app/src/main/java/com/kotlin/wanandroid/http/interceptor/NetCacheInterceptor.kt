@@ -1,7 +1,7 @@
 package com.cxz.wanandroid.http.interceptor
 
-import com.cxz.wanandroid.app.App
-import com.cxz.wanandroid.utils.NetWorkUtil
+import com.kotlin.wanandroid.WanAndroidApplication
+import com.kotlin.wanandroid.utils.NetWorkUtil
 import okhttp3.Interceptor
 import okhttp3.Response
 
@@ -15,7 +15,7 @@ class NetCacheInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val response = chain.proceed(request)
-        if (NetWorkUtil.isNetworkAvailable(App.context)) {
+        if (NetWorkUtil.isNetworkAvailable(WanAndroidApplication.context)) {
             val maxAge = 60 * 3
             // 有网络时 设置缓存超时时间0时 ,意思就是不读取缓存数据,只对get有用,post没有缓冲
             response.newBuilder()

@@ -24,7 +24,7 @@ import org.greenrobot.eventbus.ThreadMode
 
 abstract class BaseActivity: AppCompatActivity() {
 
-    protected var isLogin: Boolean by Preference(Constant.LOGIN_KEY, false)
+    protected var mIsLogin: Boolean by Preference(Constant.LOGIN_KEY, false)
     protected var hasNetwork: Boolean by Preference(Constant.HAS_NETWORK_KEY, true)
     private var mNetWorkChangeReceiver: NetWorkChangeReceiver? = null
     protected var mThemeColor: Int = SettingUtil.getColor()

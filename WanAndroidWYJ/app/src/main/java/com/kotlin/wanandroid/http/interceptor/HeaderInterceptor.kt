@@ -1,8 +1,8 @@
 package com.cxz.wanandroid.http.interceptor
 
-import com.cxz.wanandroid.constant.Constant
 import com.cxz.wanandroid.constant.HttpConstant
-import com.cxz.wanandroid.utils.Preference
+import com.kotlin.wanandroid.constant.Constant
+import com.kotlin.wanandroid.utils.Preference
 import okhttp3.Interceptor
 import okhttp3.Response
 
