@@ -170,7 +170,7 @@ abstract class BaseActivity: AppCompatActivity() {
     override fun onBackPressed() {
         super.onBackPressed()
         if (supportFragmentManager.backStackEntryCount == 0) {
-            onBackPressed()
+            super.onBackPressed()
         } else {
             supportFragmentManager.popBackStack()
         }
