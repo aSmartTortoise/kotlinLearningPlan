@@ -1,5 +1,6 @@
 package com.kotlin.wanandroid.ui.activity
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -12,17 +13,25 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomnavigation.LabelVisibilityMode
 import com.google.android.material.navigation.NavigationView
 import com.kotlin.wanandroid.R
+import com.kotlin.wanandroid.WanAndroidApplication
 import com.kotlin.wanandroid.base.BaseMVPActivity
 import com.kotlin.wanandroid.constant.Constant
+import com.kotlin.wanandroid.event.LoginEvent
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.contract.MainContract
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
 import com.kotlin.wanandroid.mvp.presenter.MainPresenter
+import com.kotlin.wanandroid.utils.DialogUtil
 import com.kotlin.wanandroid.utils.Preference
 import com.kotlin.wanandroid.utils.SettingUtil
 import com.tencent.bugly.beta.Beta
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.toolbar.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(), MainContract.View {
     private val BOTTOM_INDEX: String = "bottom_index"
@@ -46,6 +55,10 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
                 else -> false
             }
 
+    }
+
+    private val mDialog by lazy {
+        DialogUtil.getWaitDialog(this, resources.getString(R.string.logout_ing))
     }
 
     private val onDrawerNavigationItemSelectedListener =
@@ -83,7 +96,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
                 }
 
                 R.id.nav_logout -> {
-                    Log.d(TAG, "onNavigationItemSelected wyj: 退出登录")
+                    logout()
                 }
 
                 R.id.nav_night_mode -> {
@@ -111,6 +124,15 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
             true
 
     }
+
+    private fun logout() {
+        DialogUtil.getConfirmDialog(this, resources.getString(R.string.confirm_logout),
+            DialogInterface.OnClickListener { _, _ ->
+                mDialog.show()
+                mPresenter?.logout()
+            }).show()
+    }
+
     private var mTvUserName: TextView? = null
     private var mTvUserId: TextView? = null
     private var mTvUsrGrade: TextView? = null
@@ -171,6 +193,10 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
                     }
                 }
             }
+
+            mIvRank?.setOnClickListener {
+
+            }
         }
     }
 
@@ -194,16 +220,49 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     override fun createPrenter(): MainContract.Presenter = MainPresenter()
 
     override fun showLogoutSuccess(success: Boolean) {
-        TODO("Not yet implemented")
+        if (success) {
+            doAsync {
+                Preference.clearPreference()
+                uiThread {
+                    mDialog.dismiss()
+                    showToast(resources.getString(R.string.logout_success))
+                    mUsername = mTvUserName?.text.toString().trim()
+                    mIsLogin = false
+                    EventBus.getDefault().post(LoginEvent(false))
+                }
+            }
+        }
     }
 
-    override fun showUserInfo(bean: UserInfoBody) {
-        TODO("Not yet implemented")
+    override fun showUserInfo(data: UserInfoBody) {
+        WanAndroidApplication.userInfo = data
+        mTvUserId?.text = data.userId.toString()
+        mTvUsrGrade?.text = (data.coinCount / 100 + 1).toString()
+        mTvUserRank?.text = data.rank.toString()
+        mTvScore?.text = data.coinCount.toString()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         mIndex = savedInstanceState?.getInt(BOTTOM_INDEX) ?: mIndex
         super.onCreate(savedInstanceState)
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun loginEvent(event: LoginEvent) {
+        if (event.isLogin) {
+            mTvUserName?.text = mUsername
+            nav_view.menu.findItem(R.id.nav_logout).isVisible = true
+            mPresenter?.getUserInfo()
+            //todo homeFragment load
+        } else {
+            mTvUserName?.text = resources.getString(R.string.go_login)
+            nav_view.menu.findItem(R.id.nav_logout).isVisible = false
+            mTvUserId?.text = getString(R.string.nav_line_4)
+            mTvUsrGrade?.text = getString(R.string.nav_line_2)
+            mTvUserRank?.text = getString(R.string.nav_line_2)
+            mTvScore?.text = ""
+            //todo homefragment load
+        }
     }
 
 
