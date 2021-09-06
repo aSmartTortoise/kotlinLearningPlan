@@ -110,31 +110,9 @@ import kotlin.jvm.functions.FunctionN
             @PublishedApi标注，这允许在公有api的内联函数的函数体内部使用该api。当一个internal修饰的
             内联函数被标记为@PublishedApi时，它会像公有函数一样检测其函数体。
 
-                
-
-
-
-
-                
-
-
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
  **/
 
-val n = fun Int.(other: Int): Int = this + other//待接受者的匿名函数作为函数引用
+val n = fun Int.(other: Int): Int = this + other//带接受者的匿名函数作为函数类型的实例
 class FunctionExample {
     fun printHello(name: String?): Unit {
         if (name != null) println("Hello, $name")
