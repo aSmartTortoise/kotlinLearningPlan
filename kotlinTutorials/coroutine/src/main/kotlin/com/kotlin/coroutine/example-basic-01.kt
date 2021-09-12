@@ -143,7 +143,7 @@ fun getFlow5(): Flow<Int> = flow {
 }
 
 fun main() {
-//    runBlockingFunctionStudy0()
+    runBlockingFunctionStudy0()
 //    childCoroutineStudy0()
 //    threadLocalData()
 //    flowStudy0()
@@ -172,7 +172,7 @@ fun main() {
 //    flowStudy23OnCompletion()
 //    flowStudy24LaunchIn()
 //    flowStudy25Cancel()
-    flowStudy26Cancellable()
+//    flowStudy26Cancellable()
 
 }
 
@@ -717,11 +717,18 @@ private fun childCoroutineStudy0() {
     }
 }
 
+/**
+ *  参考文档
+ *  1 https://www.jianshu.com/p/6e6835573a9c
+ *  runBlocking函数，开启一个主协程，并在主携程内开启一个子协程，子携程的任务会阻塞主线程，当子
+ *  协程的任务执行完后，才会继续执行主线程的代码。
+ *  launch为CoroutineScope的扩展函数。launch的block参数是个函数类型 ，被suspend修饰，对
+ *  应的函数为挂起函数，挂起函数只能在协程中或其他挂起函数中被调用。挂起函数会挂起整个协程。以
+ *  下方法中delay挂起函数将协程挂起后，当计时结束delay挂起函数结束，后面的代码才得以执行。
+ *  runBlocking函数会阻塞当前线程,直到任务结束为止。
+ *
+ */
 private fun runBlockingFunctionStudy0() {
-    /**
-     *  runBlocking函数，开启一个主协程，并在主携程内开启一个子协程，子携程的任务会阻塞主线程，当子
-     *  协程的任务执行完后，才会继续执行主线程的代码。
-     */
     runBlocking {
         launch {
             println(

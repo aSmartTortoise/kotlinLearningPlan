@@ -59,13 +59,13 @@ import kotlinx.coroutines.*
  */
 
 fun main() {
-//    launchFunctionStudy0()
+    launchFunctionStudy0()
 
 //    launchFunctionStudy01()
 //    withContextFunctionStudy0()
 //    suspendFuctionSuspendResumeStudy()
 //    suspendCoroutineNotBlockThreadStudy()
-    coroutineRunThreadWhenResume()
+//    coroutineRunThreadWhenResume()
 }
 
 /**
