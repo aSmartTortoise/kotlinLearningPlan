@@ -195,7 +195,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
             }
 
             mIvRank?.setOnClickListener {
-
+                startActivity(Intent(this@MainActivity, RankActivity::class.java))
             }
         }
     }
