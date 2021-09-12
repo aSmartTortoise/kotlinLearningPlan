@@ -2,6 +2,7 @@ package com.kotlin.wanandroid.ui.activity
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -16,6 +17,7 @@ import com.kotlin.wanandroid.R
 import com.kotlin.wanandroid.WanAndroidApplication
 import com.kotlin.wanandroid.base.BaseMVPActivity
 import com.kotlin.wanandroid.constant.Constant
+import com.kotlin.wanandroid.event.ColorEvent
 import com.kotlin.wanandroid.event.LoginEvent
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.contract.MainContract
@@ -66,10 +68,11 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
             when(item.itemId) {
                 R.id.nav_score -> {
                     if (mIsLogin) {
-                        Log.d(TAG, "onNavigationItemSelected wyj: 去积分榜")
+                        Intent(this@MainActivity, ScoreActivity::class.java).run {
+                            startActivity(this)
+                        }
                     } else {
-                        showToast(resources.getString(R.string.login_tint))
-                        Log.d(TAG, "onNavigationItemSelected wyj 去登陆: ")
+                        goLogin()
                     }
                 }
 
@@ -123,6 +126,13 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
 
             true
 
+    }
+
+    private fun goLogin() {
+        showToast(resources.getString(R.string.login_tint))
+        Intent(this@MainActivity, LoginActivity::class.java).run {
+            startActivity(this)
+        }
     }
 
     private fun logout() {
@@ -215,6 +225,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     }
 
     override fun start() {
+        mPresenter?.getUserInfo()
     }
 
     override fun createPrenter(): MainContract.Presenter = MainPresenter()
@@ -245,6 +256,19 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     override fun onCreate(savedInstanceState: Bundle?) {
         mIndex = savedInstanceState?.getInt(BOTTOM_INDEX) ?: mIndex
         super.onCreate(savedInstanceState)
+    }
+
+    override fun initColor() {
+        super.initColor()
+        refreshColor(ColorEvent(true))
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    private fun refreshColor(colorEvent: ColorEvent) {
+        if (colorEvent.isRefresh) {
+            nav_view.getHeaderView(0).setBackgroundColor(mThemeColor)
+            floating_action_btn.backgroundTintList = ColorStateList.valueOf(mThemeColor)
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
