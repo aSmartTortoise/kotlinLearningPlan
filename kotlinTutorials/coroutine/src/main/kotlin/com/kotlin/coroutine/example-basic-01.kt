@@ -69,6 +69,7 @@ import kotlin.system.measureTimeMillis
  *
  */
 fun log(msg: String) = println("[${Thread.currentThread().name}] $msg")
+fun log(msg: Int) = println("[${Thread.currentThread().name}] $msg")
 val threadLocal = ThreadLocal<String?>()
 fun getFlow0(): Flow<Int> = flow {
     println("flow started!")

@@ -1,5 +1,10 @@
 package com.kotlin.coroutine
 
+import kotlinx.coroutines.*
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.ContinuationInterceptor
+import kotlin.coroutines.CoroutineContext
+
 /**
  *  21 协程
  *  https://www.jianshu.com/p/6e6835573a9c
@@ -28,7 +33,66 @@ package com.kotlin.coroutine
  *      不管怎么分类，协程的本质就是程序自己处理挂起和恢复。协程描述了多个程序之间如何出让
  *  运行调度权来完成执行。基于对基本的调度权转移的实现衍生出了各种异步模型，并发模型比如
  *  async/await、channel、Flow等。
+ *  23 协程调度 https://www.bennyhuo.com/2019/04/11/coroutine-dispatchers/
+ *  23.1 协程上下文
+ *      协程上下文的接口类型为CoroutineContext，通常我们见到的上下文类型是CombinedContext和Empty-
+ *  CoroutineContext，前者表示上下文的组合，后者表示什么也没有。
+ *      CoroutineContext是一个集合，元素是Element，每一个Element都有一个Key。Element同时也是
+ *  CoroutineContext的子接口。
+ *      我们在协程体中访问到的coroutineContext大多是CombinedContext类型，表示有很多的上下文实现的集合。
+ *  如果要获取特定的上下午实现，就需要通过指定的key来获取。
+ *      在协程都构建器里，可以指定上下文为协程添加一些特性，比如添加CoroutineName，如果有多个上下文可以通过
+ *  + 操作符连接组合。
+ *
  *
  *
  *
  */
+class MyContinuationInterceptor : ContinuationInterceptor {
+    override val key = ContinuationInterceptor
+    override fun <T> interceptContinuation(continuation: Continuation<T>) = MyContinuation(continuation)
+}
+class MyContinuation<T>(val continuation: Continuation<T>) : Continuation<T> {
+    override val context: CoroutineContext = continuation.context
+    override fun resumeWith(result: Result<T>) {
+        log("<MyContinuation> $result")
+        continuation.resumeWith(result)
+    }
+
+
+
+}
+fun main() {
+    runBlocking {
+//        CoroutineContextStudy01()
+        ContinuationInterceptorStudy02()
+    }
+}
+
+/**
+ *  需要运行代码根据运行结果加以理解。
+ *  所有协程启动的时候，都会有一次Continuation.resumeWith的操作，这一次操作对于调度器来说就是一次调度的机会，协程有机
+ *  会调度到其他线程也是基于此。delay是挂起点，1000ms之后需要继续调度执行该协程。delay之后会有线程切换的操作。在JVM上
+ *  delay实际是在一个ScheduledExecutor中添加一个延时任务，所以会发生线程切换。
+ */
+private suspend fun ContinuationInterceptorStudy02() {
+    GlobalScope.launch(MyContinuationInterceptor()) {
+        log(1)
+        val job = async {
+            log(2)
+            delay(1000)
+            log(3)
+            "Hello"
+        }
+        log(4)
+        val result = job.await()
+        log("5.$result")
+    }.join()
+    log(6)
+}
+
+private fun CoroutineContextStudy01(): Job {
+    return GlobalScope.launch(CoroutineName("Hello")) {
+        println(coroutineContext[Job])//这里的Job实际上是对Job这个接口定义的伴生对象的引用。
+    }
+}
