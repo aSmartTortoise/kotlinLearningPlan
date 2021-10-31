@@ -2,6 +2,7 @@ package com.kotlin.wanandroid.ui.activity
 
 import android.os.Bundle
 import android.view.Menu
+import android.view.MenuItem
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -143,5 +144,14 @@ class ScoreActivity : BaseSwipeBackMVPActivity<ScoreContract.View, ScoreContract
         menu?.clear()
         menuInflater.inflate(R.menu.menu_score, menu)
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.action_help -> {
+
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 }
