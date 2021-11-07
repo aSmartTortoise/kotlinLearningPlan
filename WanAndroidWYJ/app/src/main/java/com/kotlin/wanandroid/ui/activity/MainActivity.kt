@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomnavigation.LabelVisibilityMode
 import com.google.android.material.navigation.NavigationView
@@ -155,6 +156,11 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
 
     override fun useEventBus(): Boolean = true
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        mIndex = savedInstanceState?.getInt(BOTTOM_INDEX) ?: mIndex
+        super.onCreate(savedInstanceState)
+    }
+
     override fun initData() {
         Beta.checkUpgrade(false, false)
     }
@@ -176,6 +182,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
 
         initDrawerLayout()
         initNavView()
+        showFragment(mIndex)
     }
 
     private fun initNavView() {
@@ -253,16 +260,6 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
         mTvScore?.text = data.coinCount.toString()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        mIndex = savedInstanceState?.getInt(BOTTOM_INDEX) ?: mIndex
-        super.onCreate(savedInstanceState)
-    }
-
-    override fun initColor() {
-        super.initColor()
-        refreshColor(ColorEvent(true))
-    }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     private fun refreshColor(colorEvent: ColorEvent) {
         if (colorEvent.isRefresh) {
@@ -287,6 +284,20 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
             mTvScore?.text = ""
             //todo homefragment load
         }
+    }
+
+    private fun showFragment(index: Int) {
+        var transaction = supportFragmentManager.beginTransaction()
+        hideFragments(transaction)
+    }
+
+    private fun hideFragments(transaction: FragmentTransaction) {
+
+    }
+
+    override fun initColor() {
+        super.initColor()
+        refreshColor(ColorEvent(true))
     }
 
 
