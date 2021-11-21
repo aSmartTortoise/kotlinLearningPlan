@@ -1,5 +1,6 @@
 package com.kotlin.wanandroid.ui.frament
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.text.Layout
 import android.view.View
@@ -23,38 +24,55 @@ import com.kotlin.wanandroid.mvp.model.bean.Banner
 import com.kotlin.wanandroid.mvp.presenter.HomePresenter
 import com.kotlin.wanandroid.ui.activity.ContentActivity
 import com.kotlin.wanandroid.ui.activity.LoginActivity
+import com.kotlin.wanandroid.utils.ImageLoader
 import com.kotlin.wanandroid.utils.NetWorkUtil
 import com.kotlin.wanandroid.widget.SpaceItemDecoration
+import io.reactivex.Observable
 import kotlinx.android.synthetic.main.fragment_refresh_layout.*
 import kotlinx.android.synthetic.main.item_home_banner.view.*
 
 class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(),
     HomeContract.View {
+
+    companion object {
+        fun getInstance(): HomeFragment = HomeFragment()
+    }
+
     private var mRefresh: Boolean = true
     private var mDatas: MutableList<Article> = mutableListOf()
     private val mHomeAdapter: HomeAdapter by lazy {
         HomeAdapter(activity, mDatas)
     }
+    private val mBannerAdatpter: BGABanner.Adapter<ImageView, String> by lazy {
+        BGABanner.Adapter<ImageView, String> { bgaBanner, imageView, feedImageUrl, position ->
+            ImageLoader.load(activity, feedImageUrl, imageView)
+        }
+    }
+
     private val mLinearLayoutManager: LinearLayoutManager by lazy(LazyThreadSafetyMode.NONE) {
         LinearLayoutManager(activity)
     }
+
     private val mOnRefreshListener = SwipeRefreshLayout.OnRefreshListener {
         mRefresh = true
         mHomeAdapter.setEnableLoadMore(false)
         mPresenter?.requestHomeData()
     }
+
     private val mRequestLoadMoreListener = BaseQuickAdapter.RequestLoadMoreListener {
         mRefresh = false
         swipeRefreshLayout.isRefreshing = false
         val page = mHomeAdapter.data.size / 20
         mPresenter?.requestArticles(page)
     }
+
     private val mOnItemClickListener = BaseQuickAdapter.OnItemClickListener { _, _, position ->
         if (mDatas.size != 0) {
             val data = mDatas[position]
             ContentActivity.start(activity, data.id, data.title, data.link)
         }
     }
+
     private val mOnItemChildClickListener =
         BaseQuickAdapter.OnItemChildClickListener { _, view, position ->
             if (mDatas.size != 0) {
@@ -91,8 +109,10 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
             SpaceItemDecoration(this)
         }
     }
+
     private var mBannerView: View? = null
     private lateinit var mBannerDatas: ArrayList<Banner>
+
     private val mBannerDelegate =
         BGABanner.Delegate<ImageView, String> { banner, imageView, model, position ->
             if (mBannerDatas.size > 0) {
@@ -124,13 +144,15 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
             setOnLoadMoreListener(mRequestLoadMoreListener, recyclerView)
             onItemClickListener = mOnItemClickListener
             onItemChildClickListener = mOnItemChildClickListener
+            addHeaderView(mBannerView)
         }
 
 
     }
 
     override fun lazyLoad() {
-        TODO("Not yet implemented")
+        mLayoutStatusView?.showLoading()
+        mPresenter?.requestHomeData()
     }
 
     override fun creatPresenter(): HomeContract.Presenter = HomePresenter()
@@ -139,12 +161,44 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
         TODO("Not yet implemented")
     }
 
+    @SuppressLint("CheckResult")
     override fun setBanner(banners: List<Banner>) {
-        TODO("Not yet implemented")
+        mBannerDatas = banners as ArrayList<Banner>
+        val bannerFeedList = ArrayList<String>()
+        val bannerTitleList = ArrayList<String>()
+        Observable.fromIterable(banners).subscribe { banner ->
+            bannerFeedList.add(banner.imagePath)
+            bannerTitleList.add(banner.title)
+
+        }
+        mBannerView?.banner?.run {
+            setAutoPlayAble(bannerFeedList.size > 1)
+            setData(bannerFeedList, bannerTitleList)
+            setAdapter(mBannerAdatpter)
+        }
     }
 
     override fun setArticles(articles: ArticleResponseBody) {
-        TODO("Not yet implemented")
+        articles.datas.let {
+            mHomeAdapter.run {
+                if (mRefresh) {
+                    replaceData(it)
+                } else {
+                    addData(it)
+                }
+                if (it.size < articles.size) {
+                    loadMoreEnd(mRefresh)
+                } else {
+                    loadMoreComplete()
+                }
+            }
+        }
+
+        if (mHomeAdapter.data.isEmpty()) {
+            mLayoutStatusView?.showEmpty()
+        } else {
+            mLayoutStatusView?.showContent()
+        }
     }
 
     override fun showCollectSuccess(seccess: Boolean) {

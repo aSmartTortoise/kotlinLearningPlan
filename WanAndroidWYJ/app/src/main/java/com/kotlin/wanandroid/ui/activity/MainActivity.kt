@@ -3,6 +3,7 @@ package com.kotlin.wanandroid.ui.activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.net.TrafficStats
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -24,6 +25,7 @@ import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.contract.MainContract
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
 import com.kotlin.wanandroid.mvp.presenter.MainPresenter
+import com.kotlin.wanandroid.ui.frament.HomeFragment
 import com.kotlin.wanandroid.utils.DialogUtil
 import com.kotlin.wanandroid.utils.Preference
 import com.kotlin.wanandroid.utils.SettingUtil
@@ -47,6 +49,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     private val FRAGMENT_PROJECT = 0x05
 
     private var mIndex = FRAGMENT_HOME
+    private var mHomeFragment: HomeFragment? = null
 
     private val mOnNavigationItemSelectedListener =
         BottomNavigationView.OnNavigationItemSelectedListener { item ->
@@ -289,10 +292,23 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     private fun showFragment(index: Int) {
         var transaction = supportFragmentManager.beginTransaction()
         hideFragments(transaction)
+        mIndex = index
+        when(index) {
+            FRAGMENT_HOME -> {
+                toolbar.title = getString(R.string.app_name)
+                if (mHomeFragment == null) {
+                    mHomeFragment = HomeFragment.getInstance()
+                    transaction.add(R.id.container, mHomeFragment!!, "HOME")
+                } else {
+                    transaction.show(mHomeFragment!!)
+                }
+            }
+        }
+        transaction.commit()
     }
 
     private fun hideFragments(transaction: FragmentTransaction) {
-
+        mHomeFragment?.let { transaction.hide(it) }
     }
 
     override fun initColor() {
