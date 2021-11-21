@@ -23,7 +23,7 @@ import kotlin.jvm.functions.FunctionN
  *              函数类型在表示的时候可以选择性地在参数列表中包含参数名，例如(x: Int, y: Int) -> Point
  *              如需将函数类型指定为可空类型则：((x: Int, y: Int) - > Int)?
  *              函数类型对应的类为FunctionN，FunctionN中定义了invoke方法，其中N表示函数类型
- *              中的参数的个数。函数类型的实例可以直接作为函数调用-其实质是调用invoke函数。
+ *              中的参数的个数。函数类型的实例可以直接当函数调用-其实质是调用invoke函数。
  *              函数类型和String、Int类型一样，是一种独立类型。lambda只是实现函数类型实例化的一种
  *              方式。
  *              Unit返回类型不能省略。
@@ -55,6 +55,14 @@ import kotlin.jvm.functions.FunctionN
  *              闭包即函数中包含函数，这里的函数包括：匿名函数、lambda表达式、局部函数、对象表达式。
  *              Java是不支持闭包的，Kotlin支持闭包。
  *              Kotlin中几种闭包的表现形式。
+ *        16.4.5 函数引用
+ *              https://juejin.cn/post/6930978099987398670
+ *              https://www.jianshu.com/p/10358883455c
+ *              https://juejin.cn/post/6930978099987398670
+ *              Kotlin提供的限定符 :: 可以由具名函数的函数名得到对应的函数引用。
+ *              具体有 类名::函数名（对象声明中的函数或者伴生对象的函数）
+ *              对象应用::函数名（成员函数） ::函数名（顶层函数、局部函数）
+ *
  *        16.5 内联函数 https://segmentfault.com/a/1190000038996559
  *        16.5.1 内联函数的概念
  *              被inline修饰的函数就是内联函数。其原理：在编译期，把调用这个函数的地方用这个函数的方法
@@ -113,6 +121,14 @@ import kotlin.jvm.functions.FunctionN
  **/
 
 val n = fun Int.(other: Int): Int = this + other//带接受者的匿名函数作为函数类型的实例
+
+/**
+ * 具名函数
+ */
+fun increament(i: Int): Int {
+    return i + 1
+}
+
 class FunctionExample {
     fun printHello(name: String?): Unit {
         if (name != null) println("Hello, $name")
@@ -127,13 +143,22 @@ class FunctionExample {
         println("x ^ 2 = ${x * x}")
     }
 
-    val m: (Int) -> String = fun(x: Int) = "$x,"//匿名函数
+    val m: (Int) -> String = fun(x: Int) = "$x,"//匿名函数作为函数类型的实例
     val n: (Int) -> Int = {it + 5}//只有一个参数的Lambada表达式的函数类型的声明
+
+    fun sum(it: Int): Int = it + 1
 
     fun test(num1: Int, bool: (Int) -> Boolean): Int {
         return if (bool(num1)) {
             num1
         } else 0
+    }
+
+    /**
+     * 高阶函数
+     */
+    fun test2(a: Int, b: (Int) -> Int): Int {
+        return a + b(a)
     }
 
     //闭包 函数的返回值类型为函数类型 且携带状态值
@@ -191,6 +216,9 @@ class FunctionExample {
 
 }
 
+/**
+ *  实现函数类型接口的类
+ */
 class Test : (Int) -> String {
     override fun invoke(p1: Int): String {
         return "$p1 xxx"
@@ -199,7 +227,7 @@ class Test : (Int) -> String {
 
 fun main(args: Array<String>) {
     println(1 shl 2)
-    println(Test()(110))
+    println(Test()(110))//实现函数类型的接口的类的实例
     val arr = arrayOf(1, 3, 5, 7)
     println(arr.filter { it > 3 }.component1())
     val functionExample = FunctionExample()
@@ -210,11 +238,15 @@ fun main(args: Array<String>) {
         "key1" to "value1", "key2" to "value2",
         "key3" to "value3"
     )
-    map.forEach { (_, value) -> println(value) }
+    map.forEach { _, value -> println(value) }
     println("FunctionExamplt m ${functionExample.m.invoke(10)}")
     println("FunctionExamplt m ${functionExample.m(10)}")
     println("带接受者的匿名函数${2.n(3)}")
     println("只有一个参数的Lambada表达式中用it代表这个参数${functionExample.n.invoke(10)}")
+    println("--------------函数引用实现的函数类型的实例化---------")
+    //使用标识符 :: 由具名函数的函数名 获取函数引用
+    println("函数引用之顶层方法 ${functionExample.test2(10, ::increament)}")
+    println("函数引用之成员方法 ${functionExample.test2(10, functionExample::sum)}")
     println("------------闭包演示-------------")
     var test1 = functionExample.test1(10)
     println(test1.invoke())
@@ -236,3 +268,5 @@ fun main(args: Array<String>) {
 
 
 }
+
+
