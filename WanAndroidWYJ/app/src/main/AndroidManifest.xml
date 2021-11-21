@@ -20,7 +20,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.activity.ScoreActivity"></activity>
+        <activity
+            android:name=".ui.activity.ContentActivity"
+            android:exported="false" />
+        <activity android:name=".ui.activity.ScoreActivity" />
         <activity android:name=".ui.activity.RankActivity" />
         <activity android:name=".ui.activity.RegistActivity" />
         <activity android:name=".ui.activity.LoginActivity" />

@@ -15,7 +15,7 @@ abstract class BasePresenter<M: IModel, V: IView> : IPresenter<V>, LifecycleObse
         get() = mView != null
     private var mCompositeDisposable: CompositeDisposable? = null
 
-    abstract fun createModel(): M?
+    open fun createModel(): M? = null
 
     open fun useEventBus(): Boolean = false
 

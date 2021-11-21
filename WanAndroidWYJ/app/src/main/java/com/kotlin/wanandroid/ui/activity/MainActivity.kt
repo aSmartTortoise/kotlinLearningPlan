@@ -3,6 +3,7 @@ package com.kotlin.wanandroid.ui.activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.net.TrafficStats
 import android.os.Bundle
 import android.util.Log
 import android.view.Gravity
@@ -10,6 +11,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomnavigation.LabelVisibilityMode
 import com.google.android.material.navigation.NavigationView
@@ -23,6 +25,7 @@ import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.contract.MainContract
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
 import com.kotlin.wanandroid.mvp.presenter.MainPresenter
+import com.kotlin.wanandroid.ui.frament.HomeFragment
 import com.kotlin.wanandroid.utils.DialogUtil
 import com.kotlin.wanandroid.utils.Preference
 import com.kotlin.wanandroid.utils.SettingUtil
@@ -46,6 +49,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     private val FRAGMENT_PROJECT = 0x05
 
     private var mIndex = FRAGMENT_HOME
+    private var mHomeFragment: HomeFragment? = null
 
     private val mOnNavigationItemSelectedListener =
         BottomNavigationView.OnNavigationItemSelectedListener { item ->
@@ -155,6 +159,11 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
 
     override fun useEventBus(): Boolean = true
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        mIndex = savedInstanceState?.getInt(BOTTOM_INDEX) ?: mIndex
+        super.onCreate(savedInstanceState)
+    }
+
     override fun initData() {
         Beta.checkUpgrade(false, false)
     }
@@ -176,6 +185,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
 
         initDrawerLayout()
         initNavView()
+        showFragment(mIndex)
     }
 
     private fun initNavView() {
@@ -253,16 +263,6 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
         mTvScore?.text = data.coinCount.toString()
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        mIndex = savedInstanceState?.getInt(BOTTOM_INDEX) ?: mIndex
-        super.onCreate(savedInstanceState)
-    }
-
-    override fun initColor() {
-        super.initColor()
-        refreshColor(ColorEvent(true))
-    }
-
     @Subscribe(threadMode = ThreadMode.MAIN)
     private fun refreshColor(colorEvent: ColorEvent) {
         if (colorEvent.isRefresh) {
@@ -287,6 +287,33 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
             mTvScore?.text = ""
             //todo homefragment load
         }
+    }
+
+    private fun showFragment(index: Int) {
+        var transaction = supportFragmentManager.beginTransaction()
+        hideFragments(transaction)
+        mIndex = index
+        when(index) {
+            FRAGMENT_HOME -> {
+                toolbar.title = getString(R.string.app_name)
+                if (mHomeFragment == null) {
+                    mHomeFragment = HomeFragment.getInstance()
+                    transaction.add(R.id.container, mHomeFragment!!, "HOME")
+                } else {
+                    transaction.show(mHomeFragment!!)
+                }
+            }
+        }
+        transaction.commit()
+    }
+
+    private fun hideFragments(transaction: FragmentTransaction) {
+        mHomeFragment?.let { transaction.hide(it) }
+    }
+
+    override fun initColor() {
+        super.initColor()
+        refreshColor(ColorEvent(true))
     }
 
 
