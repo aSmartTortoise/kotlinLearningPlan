@@ -133,7 +133,10 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
             layoutManager = mLinearLayoutManager
             adapter = mHomeAdapter
             itemAnimator = DefaultItemAnimator()
-            mItemDecoration?.let { addItemDecoration(it) }
+            //如果lambda表达式中只使用一个函数，且该函数中的参数，全部是lambda表达式的参数，且顺序相同
+            //那么就可以使用标识符::来使用函数引用
+            mItemDecoration?.let(::addItemDecoration)
+//            mItemDecoration?.let { addItemDecoration(it) }
         }
         mBannerView = layoutInflater.inflate(R.layout.item_home_banner, null)
         mBannerView?.banner?.run {
