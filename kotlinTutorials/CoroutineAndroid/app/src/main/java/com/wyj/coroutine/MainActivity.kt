@@ -31,19 +31,38 @@ class MainActivity : AppCompatActivity() {
 
     @DelicateCoroutinesApi
     private fun start() {
-        GlobalScope.launch {
-            val job = launch {
-                Log.d(TAG, "start: wyj launch 启动一个协程。")
+        /**
+         *  当满足下列条件的时候，协程之间是同步的
+         *  （1）父协程的协程调度器是Dispatchers.Main
+         *  （2）子协程没有指定相应的协程调度器。
+         */
+        GlobalScope.launch(Dispatchers.Main) {
+            for (index in 1 until 10) {
+//                startCoroutine(index)
+                startCoroutineDefalutDispatcher(index)
             }
-            Log.d(TAG, "start: wyj job:$job")
-            val defered = async {
-                Log.d(TAG, "start: wyj async 启动一个协程。")
-                "返回值是啥"
-            }
-            Log.d(TAG, "start: wyj defered result ${defered.await()}")
-            Log.d(TAG, "start: wyj defered $defered")
         }
+    }
 
+    /**
+     *  根据多次的测试结果发现index为2 的job有时会会先于index为1的job，有时候会落后于index为1的job。
+     *  说明了index为2的协程与其他index的协程是并发的，而非同步。
+     */
+    private fun CoroutineScope.startCoroutineDefalutDispatcher(index: Int) {
+        if (index == 2) {
+            launch(Dispatchers.Default) {
+                Log.d(TAG, "start: wyj index 2")
+            }
+        } else {
+            launch {
+                Log.d(TAG, "start: wyj index:$index")
+            }
+        }
+    }
 
+    private fun CoroutineScope.startCoroutine(index: Int) {
+        launch {
+            Log.d(TAG, "start: wyj index:$index")
+        }
     }
 }
