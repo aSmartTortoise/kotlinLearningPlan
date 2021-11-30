@@ -31,20 +31,19 @@ class MainActivity : AppCompatActivity() {
 
     @DelicateCoroutinesApi
     private fun start() {
-        val runBlockingJob = runBlocking {
-            Log.d("runBlocking", "启动一个协程。")
-            23
+        GlobalScope.launch {
+            val job = launch {
+                Log.d(TAG, "start: wyj launch 启动一个协程。")
+            }
+            Log.d(TAG, "start: wyj job:$job")
+            val defered = async {
+                Log.d(TAG, "start: wyj async 启动一个协程。")
+                "返回值是啥"
+            }
+            Log.d(TAG, "start: wyj defered result ${defered.await()}")
+            Log.d(TAG, "start: wyj defered $defered")
         }
 
-        Log.d(TAG, "start: runBlockingJob:$runBlockingJob")
-        val launchJob = GlobalScope.launch {
-            Log.d("launch", "启动一个协程。")
-        }
-        Log.d(TAG, "start: launchJob:$launchJob")
-        var defered = GlobalScope.async {
-            Log.d("async", "启动一个协程。")
-            "async 协程 defered返回值"
-        }
-        Log.d(TAG, "start: defered:$defered")
+
     }
 }
