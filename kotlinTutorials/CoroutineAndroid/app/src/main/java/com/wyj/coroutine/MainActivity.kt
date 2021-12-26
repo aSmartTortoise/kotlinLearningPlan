@@ -6,6 +6,8 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import kotlinx.coroutines.*
+import java.lang.NullPointerException
+import kotlin.coroutines.coroutineContext
 
 /**
  *  https://juejin.cn/post/6953441828100112392
@@ -30,9 +32,36 @@ import kotlinx.coroutines.*
  *      UNDISPATCHED 非调度的模式；协程创建之后，不经过调度立即执行。协程在执行到第一个挂起点之前不会被
  *  取消。与ATOMIC相同的地方是都会立即执行，在执行到第一个挂起点之前不会被取消。不同点在于UNDISPATCHED
  *  模式不经过调度立即执行的。当然在遇到挂起点之后的执行，取决于挂起点本事的逻辑和协程上下文中的调度器。
+ *  4 CoroutineScope 协程作用域
+ *      CoroutineScope为协程定义了作用范围，每个协程构建器launch、async等都是CoroutineScope的扩展。
+ *  是一个接口，只有一个属性coroutineContext。
+ *      通过方法MainScope()和对象声明的GlobalScope可以获得CoroutineScope对象，都是顶级作用域。
+ *      由方法MainScope()获取的CoroutineScope是一个在主线程中执行的协程作用域。
+ *      4.1 作用域的分类
+ *      顶级作用域：没有父协程的协程的作用域即为顶级作用域。
+ *      协同作用域：在协程中启动一个协程，新的协程即为所在协程的子协程，子协程的作用域默认情况下就是
+ *  协同作用域。当子协程发生未捕获的异常，会将异常传递给父协程处理，如果父协程被取消，则所有的子协程也
+ *  会被同时取消。
+ *      监督作用域/主从作用域：todo
+ *
+ *      父协程需要等待所有的子协程执行完毕之后进入completed状态。
+ *      协程的声明周期演化形态
+ *
+ *      wait children
+    +-----+ start  +--------+ complete   +-------------+  finish  +-----------+
+    | New | -----> | Active | ---------> | Completing  | -------> | Completed |
+    +-----+        +--------+            +-------------+          +-----------+
+                        |  cancel / fail       |
+                        |     +----------------+
+                        |     |
+                        V     V
+                        +------------+                           finish  +-----------+
+                        | Cancelling | --------------------------------> | Cancelled |
+                        +------------+                                   +-----------+
  *
  *
- *
+ *  子协程会继承父协程的协程上下文中的Element，如果自身有相同的Key成员，则覆盖指定Key的Element元素，覆盖
+ *  的效果仅限自身范围内有效。
  */
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -69,8 +98,99 @@ class MainActivity : AppCompatActivity() {
 //        plusCoroutineContextElement()
 //        coroutineStartStudy()
 //        coroutineUndispatchedStudy()
-        coroutineUndispatchedStudy2()
+//        coroutineUndispatchedStudy2()
+//        coroutineUndispatchedStudy3()
+//        coroutineScopeStudy()
+//        coroutineScopeStudy2()
+        coroutineScopeStudy3()
 
+    }
+
+    private fun coroutineScopeStudy3() {
+        val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
+            Log.d(TAG, "coroutineScopeStudy3: wyj exceptionHandler ${context[CoroutineName]} " +
+                    "$throwable")
+        }
+        GlobalScope.launch(Dispatchers.Main + CoroutineName("scope1") + exceptionHandler) {
+            supervisorScope {
+                Log.d(TAG, "coroutineScopeStudy3: wyj scope1 ---->1")
+                launch(CoroutineName("scope2")) {
+                    Log.d(TAG, "coroutineScopeStudy3: wyj socpe2 --->2")
+                    throw NullPointerException("scope2 空指针")
+                    Log.d(TAG, "coroutineScopeStudy3: wyj scope2 --->3")
+                    val scope3Job = launch(CoroutineName("scope3")) {
+                        Log.d(TAG, "coroutineScopeStudy3: wyj scope3 --->4")
+                        delay(2000L)
+                        Log.d(TAG, "coroutineScopeStudy3: wyj scope3 --->5")
+                    }
+                    scope3Job.join()
+                }
+                val scope4Job = launch(CoroutineName("scope4")) {
+                    Log.d(TAG, "coroutineScopeStudy3: wyj scope4 ---->6")
+                    delay(2000L)
+                    Log.d(TAG, "coroutineScopeStudy3: wyj scope4 ---->7")
+                }
+                scope4Job.join()
+                Log.d(TAG, "coroutineScopeStudy3: wyj scope1 ---->8")
+            }
+        }
+    }
+
+    /**
+     *  子协程scope2抛出异常，并将异常传递给了父协程scope1，父协程取消，导致其子协程scope3也取消了。
+     */
+    private fun coroutineScopeStudy2() {
+        val exceptionHanlder = CoroutineExceptionHandler {context, throwable ->
+            Log.d(
+                TAG,
+                "coroutineScopeStudy2: wyj exceptionHandler ${context[CoroutineName]}," +
+                        " $throwable."
+            )
+        }
+
+        GlobalScope.launch(Dispatchers.Main + CoroutineName("scope1") + exceptionHanlder) {
+            Log.d(TAG, "coroutineScopeStudy2: wyj scope1 ------> 1")
+            launch(CoroutineName("scope2") + exceptionHanlder) {
+                Log.d(TAG, "coroutineScopeStudy2: wyj scope2 ----->2")
+                throw NullPointerException("scope2 空指针")
+                Log.d(TAG, "coroutineScopeStudy2: wyj scope2 ----->3")
+            }
+            val scope3Job = launch(CoroutineName("scope3") + exceptionHanlder) {
+                Log.d(TAG, "coroutineScopeStudy2: wyj scope3 ---->4")
+                delay(2000L)
+                Log.d(TAG, "coroutineScopeStudy2: wyj scope3 ---->5")
+            }
+            scope3Job.join()
+            Log.d(TAG, "coroutineScopeStudy2: wyj scope1 ---->6")
+        }
+    }
+
+    private fun coroutineScopeStudy() {
+        GlobalScope.launch(context = Dispatchers.Main) {
+            Log.d(TAG, "coroutineScopeStudy: wyj 父协程 $coroutineContext")
+            launch(context = CoroutineName("第一个子协程")) {
+                Log.d(TAG, "coroutineScopeStudy: wyj 第一个子协程 $coroutineContext")
+            }
+            launch(context = Dispatchers.Unconfined) {
+                Log.d(TAG, "coroutineScopeStudy: wyj 第二个子协程 $coroutineContext")
+            }
+        }
+    }
+
+    private fun coroutineUndispatchedStudy3() {
+        GlobalScope.launch(context = Dispatchers.Main) {
+            val ioJob = launch(start = CoroutineStart.UNDISPATCHED) {
+                Log.d(TAG, "coroutineUndispatchedStudy: wyj 线程:${Thread.currentThread().name}, 挂起前")
+                delay(100L)
+                Log.d(
+                    TAG,
+                    "coroutineUndispatchedStudy: wyj 线程：${Thread.currentThread().name}, 挂起后。"
+                )
+            }
+            Log.d(TAG, "coroutineUndispatchedStudy: wyj 线程：${Thread.currentThread().name}, join之前。")
+            ioJob.join()
+            Log.d(TAG, "coroutineUndispatchedStudy: wyj 线程：${Thread.currentThread().name}, join之后。")
+        }
     }
 
     /**
