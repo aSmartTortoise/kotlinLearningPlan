@@ -102,10 +102,50 @@ class MainActivity : AppCompatActivity() {
 //        coroutineUndispatchedStudy3()
 //        coroutineScopeStudy()
 //        coroutineScopeStudy2()
-        coroutineScopeStudy3()
+//        coroutineScopeStudy3()
+        coroutineScopeStudy4()
 
     }
 
+    /**
+     *  根据主从/监督作业创建了主从/监督作用域，协程scope2抛出的异常导致自身取消退出，
+     *  在自身的exceptionHandler中得到了处理。该异常不会传递给同级的协程scope3。因为调用的coroutineScope的
+     *  cancel方法使得下级的协程3取消退出，没有执行协程3后半部分代码，coroutineScope的cancel方法只会取消其内部子协程
+     *  不会取消自身作用域范围的协程。
+     */
+    fun coroutineScopeStudy4() {
+        val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
+            Log.d(TAG, "coroutineScopeStudy4: wyj exceptionHandler:${context[CoroutineName]}, $throwable")
+        }
+
+        val coroutineScope = CoroutineScope(SupervisorJob() + CoroutineName("coroutineScope"))
+        GlobalScope.launch(Dispatchers.Main + CoroutineName("scope1") + exceptionHandler) {
+            with(coroutineScope) {
+                val scope2Job = launch(CoroutineName("scope2") + exceptionHandler) {
+                    Log.d(TAG, "coroutineScopeStudy4: wyj scope2 ----1 ${coroutineContext[CoroutineName]}")
+                    throw NullPointerException("scope2 空指针.")
+                }
+                val scope3Job = launch(CoroutineName("scope3") + exceptionHandler) {
+                    scope2Job.join()
+                    Log.d(TAG, "coroutineScopeStudy4: wyj scope3 --------2 ${coroutineContext[CoroutineName]}")
+                    delay(2000L)
+                    Log.d(TAG, "coroutineScopeStudy4: wyj scope3 --------3 ${coroutineContext[CoroutineName]}")
+                }
+                scope2Job.join()
+                Log.d(TAG, "coroutineScopeStudy4: wyj scope1 ----------4 ${coroutineContext[CoroutineName]}")
+                coroutineScope.cancel()
+                scope3Job.join()
+                Log.d(TAG, "coroutineScopeStudy4: wyj scope1 -------5 ${coroutineContext[CoroutineName]}")
+            }
+            Log.d(TAG, "coroutineScopeStudy4: wyj scope1 -----6 ${coroutineContext[CoroutineName]}")
+        }
+    }
+
+    /**
+     *  子协程scope2抛出了空指针异常，导致该协程取消，同时将异常传递给父协程scope1，父协程的handler 接收到了
+     *  这个异常。因为子协程和父协程是主从（监督）作用域，取消操作单向传递，异常不会是父协程取消
+     *  退出，所以协程scope3能够正常执行。
+     */
     private fun coroutineScopeStudy3() {
         val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
             Log.d(TAG, "coroutineScopeStudy3: wyj exceptionHandler ${context[CoroutineName]} " +
