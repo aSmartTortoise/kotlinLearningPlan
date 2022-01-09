@@ -12,6 +12,7 @@ import kotlin.coroutines.coroutineContext
 /**
  *  https://juejin.cn/post/6953441828100112392
  *  https://juejin.cn/post/6953287252373930021
+ *  https://juejin.cn/post/6954250061207306253
  *
  *  1 CoroutineDispatcher
  *      协程调度器：调度器确定了相关的协程在哪个线程或哪些线程上运行。协程调度器可以限制协程在某个线程上运行、
@@ -67,6 +68,11 @@ import kotlin.coroutines.coroutineContext
  *      挂起函数是需要有挂起点的，即Continuation。
  *      协程构建器launch、async返回值类型都是AbstractCoroutine的子类，在方法体中调用了AbstractCoroutine的
  *  start函数，然后进一步调用了CoroutineStart的invoke函数。从而说明返回值类型也是Continuation的子类
+ *  6 协程异常的产生流程
+ *      todo
+ *  7 协程异常的处理
+ *      CoroutineExceptionHandler是用来捕获未处理的异常的。
+ *
  *
  */
 class MainActivity : AppCompatActivity() {
@@ -84,7 +90,231 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+        findViewById<View>(R.id.btn_exception_handler).setOnClickListener {
+            studyExceptionHandler()
+        }
 
+    }
+
+    private fun studyExceptionHandler() {
+//        exceptionHandlerStudy01()
+//        exceptionHandlerStudy02()
+//        exceptionHandlerStudy04()
+//        exceptionHandlerStudy05()
+//        exceptionHandlerStudy06()
+//        exceptionHandlerStudy07()
+        exceptionHandlerStudy08()
+
+    }
+
+    /**
+     * 通过在CoroutinScope的构造方法中传入SupervisorJob来获得SupervisorScope实例
+     */
+    private fun exceptionHandlerStudy08() {
+        val exceptionHandler = CoroutineExceptionHandler {context, throwable ->
+            Log.d(TAG,
+                "exceptionHandlerStudy08: wyj name:${context[CoroutineName]}, throwable:${throwable.toString()}"
+            )
+        }
+
+        val supervisorScope = CoroutineScope(SupervisorJob() + exceptionHandler)
+        with(supervisorScope) {
+            launch(CoroutineName("异常子协程")) {
+                Log.d(TAG, "exceptionHandlerStudy08: wyj thread:${Thread.currentThread().name}, 抛出异常")
+                throw NullPointerException("空指针异常。")
+            }
+            for (index in 0..10) {
+                launch(CoroutineName("子协程$index")) {
+                    if (index % 3 == 0) {
+                        throw NullPointerException("空指针异常，子协程$index")
+                    } else {
+                        Log.d(TAG, "exceptionHandlerStudy08: wyj 正常执行 子协程 $index")
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *  通过supervisorScope构建CoroutineScope形成主从/监督作用域，在该作用域中子协程的异常不会影响其他协程的执行。
+     *
+     */
+    private fun exceptionHandlerStudy07() {
+        val exceptionHandler = CoroutineExceptionHandler {context, throwable ->
+            Log.d(TAG,
+                "exceptionHandlerStudy07: wyj name:${context[CoroutineName]}, throwable:${throwable.toString()}"
+            )
+        }
+        GlobalScope.launch(exceptionHandler) {
+            supervisorScope {
+                launch(CoroutineName("异常子协程")) {
+                    Log.d(
+                        TAG,
+                        "exceptionHandlerStudy07: wyj thread:${Thread.currentThread().name}, 抛出异常"
+                    )
+                    throw NullPointerException("空指针异常")
+                }
+                for (index in 0..10) {
+                    launch(CoroutineName("子协程$index")) {
+                        Log.d(TAG, "exceptionHandlerStudy07: wyj 正常执行 thread:${Thread.currentThread().name}, index:$index")
+                        if (index %3 == 0) {
+                            throw NullPointerException("子协程index:$index")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     *  协同作用域，当子协程发生了异常，异常会传递给父协程，使得父协程被取消，进而导致其他的子协程也会被取消。
+     */
+    private fun exceptionHandlerStudy06() {
+        val exceptionHandler = CoroutineExceptionHandler {context, throwable ->
+            Log.d(
+                TAG,
+                "exceptionHandlerStudy06: wyj name:${context[CoroutineName]}, throwable:${throwable.toString()}"
+            )
+        }
+        GlobalScope.launch(CoroutineName("父协程") + exceptionHandler) {
+            val job = launch(CoroutineName("子协程")) {
+                Log.d(TAG, "exceptionHandlerStudy06: wyj thread:${Thread.currentThread().name}, " +
+                        "抛出异常。")
+                for (index in 0..10) {
+                    launch(CoroutineName("孙子异常$index")) {
+                        Log.d(TAG, "exceptionHandlerStudy06 000: wyj thread:${Thread.currentThread().name}, " +
+                                "name:${coroutineContext[CoroutineName]}")
+                    }
+                }
+
+                throw NullPointerException("空指针异常")
+            }
+
+            for (index in 0..10) {
+                launch(CoroutineName("孙子异常$index")) {
+                    Log.d(TAG, "exceptionHandlerStudy06 111: wyj thread:${Thread.currentThread().name}, " +
+                            "name:${coroutineContext[CoroutineName]}")
+                }
+            }
+
+            try {
+                job.join()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+
+            Log.d(TAG, "exceptionHandlerStudy06: wyj thread:${Thread.currentThread().name}, end")
+        }
+
+    }
+
+    private fun exceptionHandlerStudy05() {
+        val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
+            Log.d(
+                TAG,
+                "exceptionHandlerStudy05: wyj name:${context[CoroutineName]}, throwable:${throwable.toString()}"
+            )
+        }
+        GlobalScope.launch(CoroutineName("异常处理") + exceptionHandler) {
+            val job = launch {
+                Log.d(
+                    TAG,
+                    "exceptionHandlerStudy05: wyj thread:${Thread.currentThread().name}， 抛出异常"
+                )
+                throw NullPointerException("异常测试")
+            }
+            Log.d(TAG, "exceptionHandlerStudy05: wyj thread:${Thread.currentThread().name}, end.")
+        }
+    }
+
+    private fun exceptionHandlerStudy04() {
+        val list: MutableList<Int> = mutableListOf(1, 2, 3)
+        GlobalScope.launch {
+            launch {
+                Log.d(
+                    TAG,
+                    "exceptionHandlerStudy03: wyj thread:${Thread.currentThread().name}, 抛异常了"
+                )
+
+                val job = launch {
+                    Log.d(
+                        TAG,
+                        "exceptionHandlerStudy04: wyj thread:${Thread.currentThread().name}"
+                    )
+                    try {
+                        val element1 = list[1]
+                        Log.d(TAG, "exceptionHandlerStudy03: wyj, list[1]:$element1")
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+
+                list.clear()
+
+            }
+
+            Log.d(TAG, "exceptionHandlerStudy03: wyj thread:${Thread.currentThread().name}, end")
+        }
+    }
+
+    private fun exceptionHandlerStudy03() {
+        val list: MutableList<Int> = mutableListOf(1, 2, 3)
+        GlobalScope.launch {
+            launch {
+                Log.d(
+                    TAG,
+                    "exceptionHandlerStudy03: wyj thread:${Thread.currentThread().name}, 抛异常了"
+                )
+                try {
+                    val job = launch {
+                        Log.d(
+                            TAG,
+                            "exceptionHandlerStudy03: wyj thread:${Thread.currentThread().name}, " +
+                                    "list[1]:${list[1]}"
+                        )
+                    }
+
+                    list.clear()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
+            }
+
+            Log.d(TAG, "exceptionHandlerStudy03: wyj thread:${Thread.currentThread().name}, end")
+        }
+    }
+    
+    private fun exceptionHandlerStudy02() {
+        GlobalScope.launch { 
+            launch(start = CoroutineStart.UNDISPATCHED) {
+                Log.d(TAG, "exceptionHandlerStudy02: thread:${Thread.currentThread().name}, 抛出异常")
+                try {
+                    throw NullPointerException("异常测试")
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            Log.d(TAG, "exceptionHandlerStudy02: wyj thread:${Thread.currentThread().name}, end")
+        }
+    }
+
+    /**
+     *  该方法会因为抛出了异常导致程序崩溃，从异常堆栈日志中可以分析协程异常抛出的机制/流程。
+     *  
+     */
+    private fun exceptionHandlerStudy01() {
+        GlobalScope.launch {
+            launch {
+                Log.d(TAG,
+                    "exceptionHandlerStudy01: wyj thread:${Thread.currentThread().name}, 抛出未捕获的异常"
+                )
+                throw NullPointerException("异常测试")
+            }
+
+            Log.d(TAG, "exceptionHandlerStudy01: wyj thread:${Thread.currentThread().name}, end")
+        }
     }
 
     @DelicateCoroutinesApi

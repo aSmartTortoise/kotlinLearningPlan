@@ -7,15 +7,26 @@
     tools:context=".MainActivity">
 
     <androidx.appcompat.widget.AppCompatButton
-        android:background="#f00"
-        android:textColor="#fff"
         android:id="@+id/btn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:background="#f00"
         android:text="Hello World!"
+        android:textColor="#fff"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btn_exception_handler"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:background="#00f"
+        android:textColor="#fff"
+        android:text="exception_handler"
+        app:layout_constraintLeft_toRightOf="@id/btn"
+        app:layout_constraintTop_toTopOf="@id/btn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
