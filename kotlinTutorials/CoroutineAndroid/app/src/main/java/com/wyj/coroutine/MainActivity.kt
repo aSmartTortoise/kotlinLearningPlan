@@ -62,6 +62,12 @@ import kotlin.coroutines.coroutineContext
  *
  *  子协程会继承父协程的协程上下文中的Element，如果自身有相同的Key成员，则覆盖指定Key的Element元素，覆盖
  *  的效果仅限自身范围内有效。
+ *
+ *  5 挂起函数
+ *      挂起函数是需要有挂起点的，即Continuation。
+ *      协程构建器launch、async返回值类型都是AbstractCoroutine的子类，在方法体中调用了AbstractCoroutine的
+ *  start函数，然后进一步调用了CoroutineStart的invoke函数。从而说明返回值类型也是Continuation的子类
+ *
  */
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -107,6 +113,10 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private suspend fun test() {
+
+    }
+
     /**
      *  根据主从/监督作业创建了主从/监督作用域，协程scope2抛出的异常导致自身取消退出，
      *  在自身的exceptionHandler中得到了处理。该异常不会传递给同级的协程scope3。因为调用的coroutineScope的
@@ -132,10 +142,10 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "coroutineScopeStudy4: wyj scope3 --------3 ${coroutineContext[CoroutineName]}")
                 }
                 scope2Job.join()
-                Log.d(TAG, "coroutineScopeStudy4: wyj scope1 ----------4 ${coroutineContext[CoroutineName]}")
+                Log.d(TAG, "coroutineScopeStudy4: wyj coroutineScope ----------4 ${coroutineContext[CoroutineName]}")
                 coroutineScope.cancel()
                 scope3Job.join()
-                Log.d(TAG, "coroutineScopeStudy4: wyj scope1 -------5 ${coroutineContext[CoroutineName]}")
+                Log.d(TAG, "coroutineScopeStudy4: wyj coroutineScope -------5 ${coroutineContext[CoroutineName]}")
             }
             Log.d(TAG, "coroutineScopeStudy4: wyj scope1 -----6 ${coroutineContext[CoroutineName]}")
         }
