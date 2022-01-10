@@ -5,6 +5,9 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import com.jie.coroutine.extention.delayMain
+import com.jie.coroutine.extention.requestIO
+import com.jie.coroutine.extention.requestMain
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -22,10 +25,22 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        lifecycleScope.launch {
+        requestMain {
             delay(2000L)
-            Toast.makeText(this@MainActivity, "haha", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@MainActivity, "haha0", Toast.LENGTH_LONG).show()
         }
+
+        requestIO {
+            loadNetData()
+        }
+
+        delayMain(100L) {
+            Toast.makeText(this@MainActivity, "hihi0", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private suspend fun loadNetData() {
+        Log.d(TAG, "loadNetData: wyj")
     }
 
     override fun onResume() {
