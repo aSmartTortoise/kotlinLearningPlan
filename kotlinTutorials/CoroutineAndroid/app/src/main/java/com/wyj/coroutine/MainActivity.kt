@@ -1,5 +1,6 @@
 package com.wyj.coroutine
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -92,6 +93,10 @@ class MainActivity : AppCompatActivity() {
         })
         findViewById<View>(R.id.btn_exception_handler).setOnClickListener {
             studyExceptionHandler()
+        }
+
+        findViewById<View>(R.id.btn_coroutine_practise).setOnClickListener {
+            coroutinePractise()
         }
 
     }
@@ -567,6 +572,12 @@ class MainActivity : AppCompatActivity() {
     private fun CoroutineScope.startCoroutine(index: Int) {
         launch {
             Log.d(TAG, "start: wyj index:$index")
+        }
+    }
+
+    private fun coroutinePractise() {
+        Intent(this, CoroutinePractiseActivity::class.java).apply {
+            startActivity(this)
         }
     }
 }
