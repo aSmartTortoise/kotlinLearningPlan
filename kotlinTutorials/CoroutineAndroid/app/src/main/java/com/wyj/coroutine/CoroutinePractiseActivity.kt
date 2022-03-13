@@ -13,6 +13,7 @@ class CoroutinePractiseActivity : AppCompatActivity() {
     }
     private var mBtn: Button? = null
     private var mJob: Job? = null
+    private val mMainScope = MainScope()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_coroutine_practise)
@@ -27,31 +28,41 @@ class CoroutinePractiseActivity : AppCompatActivity() {
         //launch方法中设置Dispatchers.main保证在主线程刷新UI，同时设置SupervisorJob，保证在子协程
         //抛异常取消，不会导致整个协程树终结。在Activity的onDestory的时候调用job.cancel取消整个
         //协程树。
-        mJob = GlobalScope.launch(Dispatchers.Main + SupervisorJob()) {
-            launch {
-                try {
-                    throw NullPointerException()
-                } catch (e: Exception) {
-                    Log.d(TAG, "start: wyj nullpointerexception name:$CoroutineName")
-                }
-            }
-
-            val result = withContext(Dispatchers.IO) {
-                delay(200L)
-                //网络请求
-                "请求结果"
-            }
-
-            launch {
-                //网络请求2
-            }
-
-            mBtn?.text = result
+//        mJob = GlobalScope.launch(Dispatchers.Main + SupervisorJob()) {
+//            processJob()
+//        }
+        //通过mainScope启动的协程，没必要保存Job实例，需要的是在Activity的onDestroy方法中，调用
+        //mainScope.cancle就可以取消整个协程树。
+        mMainScope.launch {
+            processJob()
         }
+    }
+
+    private suspend fun CoroutineScope.processJob() {
+        launch {
+            try {
+                throw NullPointerException()
+            } catch (e: Exception) {
+                Log.d(TAG, "start: wyj nullpointerexception name:$CoroutineName")
+            }
+        }
+
+        val result = withContext(Dispatchers.IO) {
+            delay(200L)
+            //网络请求
+            "请求结果"
+        }
+
+        launch {
+            //网络请求2
+        }
+
+        mBtn?.text = result
     }
 
     override fun onDestroy() {
         super.onDestroy()
         mJob?.cancel()
+        mMainScope.cancel()
     }
 }
