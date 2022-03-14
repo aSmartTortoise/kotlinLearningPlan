@@ -5,11 +5,22 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.*
 
+/**
+ *  https://juejin.cn/post/6956115368578383902#heading-2
+ */
 class CoroutinePractiseActivity : AppCompatActivity() {
     companion object {
         const val TAG = "CoroutinePractise"
+    }
+
+    init {
+        lifecycleScope.launchWhenResumed {
+            Log.d(TAG, "init 启动协程 $coroutineContext")
+        }
     }
     private var mBtn: Button? = null
     private var mJob: Job? = null
@@ -21,6 +32,11 @@ class CoroutinePractiseActivity : AppCompatActivity() {
             setOnClickListener {
                 start()
             }
+        }
+
+        lifecycleScope.launch {
+            delay(200L)
+            Toast.makeText(this@CoroutinePractiseActivity, "lifecycleScope 启动协程", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -58,6 +74,11 @@ class CoroutinePractiseActivity : AppCompatActivity() {
         }
 
         mBtn?.text = result
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d(TAG, "onResume: wyj")
     }
 
     override fun onDestroy() {
