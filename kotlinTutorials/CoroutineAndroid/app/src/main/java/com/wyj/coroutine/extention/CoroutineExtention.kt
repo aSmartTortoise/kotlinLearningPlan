@@ -1,8 +1,11 @@
 package com.wyj.coroutine.extention
 
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import com.wyj.coroutine.exception.GlobalCoroutineExceptionHandler
 import kotlinx.coroutines.*
 
@@ -72,6 +75,36 @@ inline fun Fragment.delayMain(
     noinline block: suspend CoroutineScope.() -> Unit
 ) {
     lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+        withContext(Dispatchers.IO) {
+            delay(delayTime)
+        }
+        block.invoke(this)
+    }
+}
+
+inline fun ViewModel.requestMain(
+    errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
+    noinline block: suspend CoroutineScope.() -> Unit
+) {
+    viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+        block.invoke(this)
+    }
+}
+
+inline fun ViewModel.requestIO(
+    errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
+    noinline block: suspend CoroutineScope.() -> Unit
+): Job {
+    return viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+        block.invoke(this)
+    }
+}
+
+inline fun ViewModel.delayMain(
+    delayTime: Long, errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
+    noinline block: suspend CoroutineScope.() -> Unit
+) {
+    viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
         withContext(Dispatchers.IO) {
             delay(delayTime)
         }
