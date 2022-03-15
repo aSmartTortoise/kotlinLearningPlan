@@ -1,6 +1,5 @@
 package com.wyj.coroutine.extention
 
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
@@ -8,6 +7,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.wyj.coroutine.exception.GlobalCoroutineExceptionHandler
 import kotlinx.coroutines.*
+
+public fun NormalScope(): CoroutineScope = CoroutineScope(Dispatchers.Main.immediate)
 
 inline fun AppCompatActivity.requestMain(
     errorCode: Int = -1,
