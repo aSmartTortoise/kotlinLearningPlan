@@ -7,6 +7,9 @@ import android.view.View
 import android.widget.Button
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import com.wyj.coroutine.extention.delayMain
+import com.wyj.coroutine.extention.requestIO
+import com.wyj.coroutine.extention.requestMain
 import kotlinx.coroutines.*
 
 /**
@@ -22,6 +25,7 @@ class CoroutinePractiseActivity : AppCompatActivity() {
             Log.d(TAG, "init 启动协程 $coroutineContext")
         }
     }
+
     private var mBtn: Button? = null
     private var mJob: Job? = null
     private val mMainScope = MainScope()
@@ -34,9 +38,27 @@ class CoroutinePractiseActivity : AppCompatActivity() {
             }
         }
 
-        lifecycleScope.launch {
+//        lifecycleScope.launch {
+//            delay(200L)
+//            Toast.makeText(this@CoroutinePractiseActivity, "lifecycleScope 启动协程", Toast.LENGTH_LONG).show()
+//        }
+        requestMain {
+            Log.d(TAG, "requestMain: wyj thread:${Thread.currentThread().name}")
             delay(200L)
-            Toast.makeText(this@CoroutinePractiseActivity, "lifecycleScope 启动协程", Toast.LENGTH_LONG).show()
+            Toast.makeText(this@CoroutinePractiseActivity, "lifecycleScope 启动协程", Toast.LENGTH_LONG)
+                .show()
+        }
+
+        requestIO {
+            Log.d(TAG, "onCreate: wyj requestIo thread:${Thread.currentThread().name}")
+        }
+
+        delayMain(200L) {
+            Toast.makeText(
+                this@CoroutinePractiseActivity,
+                "delayMain lifecycleScope启动协程",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
