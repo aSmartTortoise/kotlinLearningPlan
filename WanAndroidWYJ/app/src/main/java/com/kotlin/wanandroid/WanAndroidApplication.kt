@@ -10,6 +10,8 @@ import androidx.multidex.MultiDexApplication
 import com.kotlin.wanandroid.constant.Constant
 import com.kotlin.wanandroid.ext.showToast
 import com.kotlin.wanandroid.mvp.model.bean.UserInfoBody
+import com.kotlin.wanandroid.timemonitor.TimeMonitorConfig
+import com.kotlin.wanandroid.timemonitor.TimeMonitorManager
 import com.kotlin.wanandroid.utils.CommonUtil
 import com.kotlin.wanandroid.utils.DisplayManager
 import com.kotlin.wanandroid.utils.SettingUtil
@@ -96,6 +98,13 @@ class WanAndroidApplication: MultiDexApplication() {
         var userInfo: UserInfoBody? = null
     }
 
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        TimeMonitorManager
+            .get()
+            .resetTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
+    }
+
     override fun onCreate() {
         super.onCreate()
         instance = this
@@ -107,6 +116,10 @@ class WanAndroidApplication: MultiDexApplication() {
         initTheme()
         initLitePal()
         initBugly()
+        TimeMonitorManager
+            .get()
+            .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
+            .recordingTimeTag("Application-onCreate")
     }
 
     private fun setUpLeakCanary(): RefWatcher {
