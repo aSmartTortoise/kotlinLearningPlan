@@ -14,6 +14,7 @@ buildscript {
         // in the individual module build.gradle files
         // tinkersupport插件, 其中lastest.release指拉取最新版本，也可以指定明确版本号，例如1.0.4
         classpath "com.tencent.bugly:tinker-support:1.2.0"
+        classpath 'com.hujiang.aspectjx:gradle-android-plugin-aspectjx:2.0.0'
     }
 }
 

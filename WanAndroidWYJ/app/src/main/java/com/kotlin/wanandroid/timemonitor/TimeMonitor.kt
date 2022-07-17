@@ -2,6 +2,9 @@ package com.kotlin.wanandroid.timemonitor
 
 import android.util.Log
 
+/**
+ *  https://juejin.cn/post/6844904093786308622#heading-16
+ */
 class TimeMonitor constructor(var monitorId: Int = -1){
     companion object {
         const val TAG = "TimeMonitor"

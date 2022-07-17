@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'android-aspectjx'
 
 android {
     compileSdkVersion rootProject.ext.android.compileSdkVersion
@@ -55,4 +56,6 @@ dependencies {
     //leakCanary
     debugImplementation rootProject.ext.testDeps["leakcanary-debug"]
     releaseImplementation rootProject.ext.testDeps["leakcanary-release"]
+
+    implementation 'org.aspectj:aspectjrt:1.8.14'
 }
