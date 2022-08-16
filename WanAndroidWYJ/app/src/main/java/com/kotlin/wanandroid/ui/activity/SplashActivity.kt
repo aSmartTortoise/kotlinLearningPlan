@@ -2,6 +2,7 @@ package com.kotlin.wanandroid.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Debug
 import android.util.Log
 import android.view.animation.AlphaAnimation
 import android.view.animation.Animation
@@ -12,20 +13,13 @@ import com.kotlin.wanandroid.timemonitor.TimeMonitorManager
 import kotlinx.android.synthetic.main.activity_splash.*
 
 class SplashActivity : BaseActivity() {
-
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
-        TimeMonitorManager
-            .get()
-            .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
-            .recordingTimeTag("SplashActivity-onCreate")
+//        Debug.startMethodTracing("splash_create_01")
         super.onCreate(savedInstanceState)
-        TimeMonitorManager
-            .get()
-            .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
-            .recordingTimeTag("SplashActivity-onCreate-Over")
+//        Debug.stopMethodTracing()
     }
+
+    override fun useEventBus() = false
     override fun attachLayoutRes(): Int = R.layout.activity_splash
 
     override fun initData() {
@@ -33,8 +27,8 @@ class SplashActivity : BaseActivity() {
     }
 
     override fun initView() {
-        val alphaAnimation = AlphaAnimation(0.3F, 1.0F)
-        alphaAnimation.run {
+        reportFullyDrawn()
+        AlphaAnimation(0.3F, 1.0F).apply {
             duration = 2000L
             setAnimationListener(object : Animation.AnimationListener {
                 override fun onAnimationRepeat(animation: Animation?) {
@@ -48,8 +42,9 @@ class SplashActivity : BaseActivity() {
                 }
 
             })
+
+            layout_splash.startAnimation(this)
         }
-        layout_splash.startAnimation(alphaAnimation)
     }
 
     override fun start() {
@@ -67,28 +62,6 @@ class SplashActivity : BaseActivity() {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 
-    override fun onStart() {
-        super.onStart()
-        TimeMonitorManager
-            .get()
-            .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
-            .end("SplashActivity-onStart", false)
-    }
 
-    override fun onResume() {
-        super.onResume()
-        TimeMonitorManager
-            .get()
-            .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
-            .recordingTimeTag("SplashActivity-onResume")
-    }
-
-    override fun onWindowFocusChanged(hasFocus: Boolean) {
-        super.onWindowFocusChanged(hasFocus)
-        TimeMonitorManager
-            .get()
-            .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
-            .recordingTimeTag("SplashActivity-onWindowFocusChanged")
-    }
 
 }

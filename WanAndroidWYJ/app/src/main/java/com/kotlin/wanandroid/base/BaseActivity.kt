@@ -23,16 +23,16 @@ import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
 abstract class BaseActivity: AppCompatActivity() {
-
     protected var mIsLogin: Boolean by Preference(Constant.LOGIN_KEY, false)
     protected var hasNetwork: Boolean by Preference(Constant.HAS_NETWORK_KEY, true)
     private var mNetWorkChangeReceiver: NetWorkChangeReceiver? = null
     protected var mThemeColor: Int = SettingUtil.getColor()
 
     protected var mLayoutStatusView: MultipleStatusView? = null
-    lateinit var mTipView: View
+    var mTipView: View? = null
     lateinit var mWindowManager: WindowManager//延迟初始化属性，该属性为非空类型
     lateinit var mLayoutParams: WindowManager.LayoutParams
+    private var mInitTipViewFlag = false
 
     open val mRetryClickListener: View.OnClickListener = View.OnClickListener {
         start()
@@ -46,7 +46,7 @@ abstract class BaseActivity: AppCompatActivity() {
             EventBus.getDefault().register(this)
         }
         initData()
-        initTipView()
+//        initTipView()
         initView()
         start()
         initListener()
@@ -72,6 +72,7 @@ abstract class BaseActivity: AppCompatActivity() {
         mLayoutParams.x = 0
         mLayoutParams.y = 0
         mLayoutParams.windowAnimations = R.style.anim_float_view
+        mInitTipViewFlag = true
     }
 
     abstract fun initView()
@@ -126,13 +127,17 @@ abstract class BaseActivity: AppCompatActivity() {
 
     private fun checkNetwork(isConnected: Boolean) {
         if (enableNetworkTip()) {
+            if (!mInitTipViewFlag) {
+                initTipView()
+            }
+
             if (isConnected) {
                 doReConnected()
-                mTipView.parent?.let {
+                mTipView?.parent?.let {
                     mWindowManager.removeView(mTipView)
                 }
             } else {
-                if (mTipView.parent == null) {
+                if (mTipView?.parent == null) {
                     mWindowManager.addView(mTipView, mLayoutParams)
                 }
             }
@@ -195,7 +200,7 @@ abstract class BaseActivity: AppCompatActivity() {
 
     override fun finish() {
         super.finish()
-        mTipView.parent?.let {
+        mTipView?.parent?.let {
             mWindowManager.removeView(mTipView)
         }
     }

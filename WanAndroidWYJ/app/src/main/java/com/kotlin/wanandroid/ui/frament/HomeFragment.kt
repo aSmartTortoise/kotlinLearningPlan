@@ -2,12 +2,14 @@ package com.kotlin.wanandroid.ui.frament
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.text.Layout
+import android.os.Bundle
+import android.os.Debug
+import android.os.SystemClock
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import cn.bingoogolapple.bgabanner.BGABanner
 import com.chad.library.adapter.base.BaseQuickAdapter
@@ -68,6 +70,7 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
 
     private val mOnItemClickListener = BaseQuickAdapter.OnItemClickListener { _, _, position ->
         if (mDatas.size != 0) {
+            Debug.startMethodTracing("content_activity_start")
             val data = mDatas[position]
             ContentActivity.start(activity, data.id, data.title, data.link)
         }
@@ -123,8 +126,13 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
 
     override fun attachLayoutRes() = R.layout.fragment_refresh_layout
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+    }
+
     override fun initView(view: View) {
         super.initView(view)
+        Thread.sleep(1000L)
         mLayoutStatusView = multiple_status_view
         swipeRefreshLayout.run {
             setOnRefreshListener(mOnRefreshListener)
@@ -149,8 +157,6 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
             onItemChildClickListener = mOnItemChildClickListener
             addHeaderView(mBannerView)
         }
-
-
     }
 
     override fun lazyLoad() {
@@ -161,7 +167,6 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
     override fun creatPresenter(): HomeContract.Presenter = HomePresenter()
 
     override fun scrollToTop() {
-        TODO("Not yet implemented")
     }
 
     @SuppressLint("CheckResult")
@@ -204,11 +209,11 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
         }
     }
 
-    override fun showCollectSuccess(seccess: Boolean) {
-        TODO("Not yet implemented")
+    override fun showCollectSuccess(success: Boolean) {
+        Log.d(TAG, "showCollectSuccess: wyj sucess:$success")
     }
 
     override fun showCancelCollectSuccess(success: Boolean) {
-        TODO("Not yet implemented")
+        Log.d(TAG, "showCancelCollectSuccess: wyj sucess:$success")
     }
 }

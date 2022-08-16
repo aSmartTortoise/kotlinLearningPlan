@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.os.Debug
 import android.view.View
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
@@ -80,7 +81,6 @@ class ContentActivity : BaseSwipeBackMVPActivity<ContentContract.View, ContentCo
             }, 2000L)
         }
         initWebView()
-
     }
 
     fun initWebView() {
@@ -107,6 +107,7 @@ class ContentActivity : BaseSwipeBackMVPActivity<ContentContract.View, ContentCo
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
             }
         }
+        Debug.stopMethodTracing()
     }
 
     override fun start() {

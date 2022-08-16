@@ -4,7 +4,9 @@ import android.app.Activity
 import android.app.Application
 import android.content.Context
 import android.os.Bundle
+import android.os.Debug
 import android.os.Environment
+import android.os.Trace
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDexApplication
 import com.kotlin.wanandroid.constant.Constant
@@ -107,6 +109,7 @@ class WanAndroidApplication: MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
+        Trace.beginSection("myApplicaitonOnCreate")
         instance = this
         context = applicationContext
         refWatcher = setUpLeakCanary()
@@ -120,6 +123,7 @@ class WanAndroidApplication: MultiDexApplication() {
             .get()
             .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
             .recordingTimeTag("Application-onCreate")
+        Trace.endSection()
     }
 
     private fun setUpLeakCanary(): RefWatcher {

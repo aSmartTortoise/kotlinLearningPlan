@@ -24,6 +24,11 @@ abstract class BaseFragment : Fragment() {
     val mRetryClickListener: View.OnClickListener = View.OnClickListener {
         lazyLoad()
     }
+    protected var TAG: String? = null
+
+    init {
+        TAG = this.javaClass.simpleName
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
