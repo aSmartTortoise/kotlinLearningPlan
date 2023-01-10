@@ -324,17 +324,20 @@ class MainActivity : AppCompatActivity() {
 
     @DelicateCoroutinesApi
     private fun start() {
+//        startCoroutineWays()
+//        asyncAwait()
+
         /**
-         *  当满足下列条件的时候，协程之间是同步的
+         *  当满足下列条件的时候，协程是同步的
          *  （1）父协程的协程调度器是Dispatchers.Main
          *  （2）子协程没有指定相应的协程调度器。
          */
-//        GlobalScope.launch(Dispatchers.Main) {
-//            for (index in 1 until 10) {
-////                startCoroutine(index)
-//                startCoroutineDefalutDispatcher(index)
-//            }
-//        }
+        GlobalScope.launch(Dispatchers.Main) {
+            for (index in 1 until 10) {
+//                startCoroutine(index)
+                startCoroutineDefalutDispatcher(index)
+            }
+        }
 
 //        plusCoroutineContextElement()
 //        coroutineStartStudy()
@@ -344,8 +347,50 @@ class MainActivity : AppCompatActivity() {
 //        coroutineScopeStudy()
 //        coroutineScopeStudy2()
 //        coroutineScopeStudy3()
-        coroutineScopeStudy4()
+//        coroutineScopeStudy4()
 
+    }
+
+    /**
+     *   async启动的协程，调用await返回的是在协程体中最后一行的声明语句，且在当调用await方法之后
+     *   DeferredJob的状态是completed。
+     */
+    @DelicateCoroutinesApi
+    private fun asyncAwait() {
+        GlobalScope.launch {
+            val launchJob = launch {
+                Log.d(TAG, "start: launch 启动一个协程")
+            }
+            Log.d(TAG, "start: launchJob:$launchJob")
+            val asyncJob = async {
+                Log.d(TAG, "start: async 启动一个协程")
+                "我是Async的返回值"
+            }
+            Log.d(TAG, "start: asyncJo.#await:${asyncJob.await()}")
+            Log.d(TAG, "start: asyncJob$asyncJob")
+        }
+    }
+
+    /**
+     *  三种启动协程的方式
+     */
+    @DelicateCoroutinesApi
+    private fun startCoroutineWays() {
+        val runBlockingResult = runBlocking {
+            Log.d(TAG, "start: runBlocking 启动一个协程")
+            31
+        }
+        Log.d(TAG, "start: runBlockingResult:$runBlockingResult")
+        val launchResult = GlobalScope.launch {
+            Log.d(TAG, "start: launch 启动一个协程")
+            32
+        }
+        Log.d(TAG, "start: launchResult:$launchResult")
+        val asyncResult = GlobalScope.async {
+            Log.d(TAG, "start: async 启动一个协程")
+            33
+        }
+        Log.d(TAG, "start: asyncResult:$asyncResult")
     }
 
     private suspend fun test() {
