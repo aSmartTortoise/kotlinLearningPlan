@@ -91,6 +91,23 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
+        findViewById<View>(R.id.btn_dispatchers).setOnClickListener {
+            GlobalScope.launch(Dispatchers.IO) {
+                Log.d(TAG, "onCreate: CoroutineScope:$this")
+                /**
+                 *  经测试 调用withContext切换dispatchers之后，会创建新的CoroutineScope，且会挂起所在的父协程，
+                 *
+                 */
+                val result = withContext(Dispatchers.Main) {
+                    Log.d(TAG, "onCreate: withContext CoroutineScope:$this")
+                    Log.d(TAG, "onCreate: thread name:${Thread.currentThread().name}")
+                    120
+                }
+                Log.d(TAG, "onCreate: after withContext CoroutineScope:$this")
+                Log.d(TAG, "onCreate: after withContext thread name:${Thread.currentThread().name}, result:$result")
+                Log.d(TAG, "onCreate: after thread name:${Thread.currentThread().name}")
+            }
+        }
         findViewById<View>(R.id.btn_exception_handler).setOnClickListener {
             studyExceptionHandler()
         }

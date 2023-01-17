@@ -14,20 +14,30 @@
         android:background="#f00"
         android:text="Hello World!"
         android:textColor="#fff"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginTop="30dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"/>
 
     <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btn_exception_handler"
+        android:id="@+id/btn_dispatchers"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="10dp"
         android:background="#00f"
-        android:text="exception_handler"
+        android:text="dispatchers"
         android:textColor="#fff"
         app:layout_constraintLeft_toRightOf="@id/btn"
         app:layout_constraintTop_toTopOf="@id/btn" />
+
+    <Button
+        android:id="@+id/btn_exception_handler"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:text="exception_handler"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn" />
 
     <Button
         android:id="@+id/btn_coroutine_practise"
@@ -35,8 +45,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
-        android:text="coroutine practise"
-        app:layout_constraintStart_toStartOf="parent"
+        android:text="practise"
+        app:layout_constraintLeft_toRightOf="@id/btn_exception_handler"
         app:layout_constraintTop_toBottomOf="@id/btn" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
