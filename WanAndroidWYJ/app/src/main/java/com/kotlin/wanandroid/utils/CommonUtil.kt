@@ -1,6 +1,7 @@
 package com.kotlin.wanandroid.utils
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.text.TextUtils
 import android.util.TypedValue
@@ -120,6 +121,14 @@ object CommonUtil {
             }
         }
         return ""
+    }
+
+    fun getChannelName(context: Context): String {
+        val applicationInfo = context.applicationContext.packageManager.getApplicationInfo(
+            context.applicationContext.packageName,
+            PackageManager.GET_META_DATA
+        )
+        return applicationInfo.metaData.getString("channel") ?: ""
     }
 
 }

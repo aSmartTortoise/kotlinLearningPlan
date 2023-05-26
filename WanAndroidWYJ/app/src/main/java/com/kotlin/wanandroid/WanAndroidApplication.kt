@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.Debug
 import android.os.Environment
 import android.os.Trace
+import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.multidex.MultiDexApplication
 import com.kotlin.wanandroid.constant.Constant
@@ -123,6 +124,8 @@ class WanAndroidApplication: MultiDexApplication() {
             .get()
             .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
             .recordingTimeTag("Application-onCreate")
+        val channelName = CommonUtil.getChannelName(this)
+        Log.d(TAG, "onCreate: wyj channelName:$channelName")
         Trace.endSection()
     }
 

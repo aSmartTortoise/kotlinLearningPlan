@@ -26,10 +26,48 @@ android {
             jvmTarget = "1.8"
         }
     }
+
+    flavorDimensions "channel", "device"
+
+    productFlavors {
+        OPPO {
+            dimension = "channel"
+        }
+
+        xiaomi {
+            dimension = "channel"
+        }
+
+        tablet {
+            dimension = "device"
+        }
+
+        phone {
+            dimension = "device"
+        }
+
+    }
+
+    productFlavors.all { flavor ->
+        flavor.manifestPlaceholders = [CHANNEL_VALUE: name]
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            debuggable true
+        }
+    }
+
+    variantFilter { variant ->
+        def names = variant.flavors*.name
+        println("name:" + names)
+        if (names.contains("xiaomi") && names.contains("tablet")) {
+            setIgnore(true)
         }
     }
 }
@@ -55,5 +93,4 @@ dependencies {
     //leakCanary
     debugImplementation rootProject.ext.testDeps["leakcanary-debug"]
     releaseImplementation rootProject.ext.testDeps["leakcanary-release"]
-
 }
