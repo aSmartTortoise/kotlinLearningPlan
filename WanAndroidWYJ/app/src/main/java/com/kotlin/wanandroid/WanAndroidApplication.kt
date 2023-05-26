@@ -109,7 +109,7 @@ class WanAndroidApplication: MultiDexApplication() {
 
     override fun onCreate() {
         super.onCreate()
-        Trace.beginSection("myApplicaitonOnCreate")
+        Trace.beginSection("myApplicationOnCreate")
         instance = this
         context = applicationContext
         refWatcher = setUpLeakCanary()
