@@ -8,14 +8,14 @@ open class CommonPreseter<M : CommonContract.Model, V : CommonContract.View> :
     BasePresenter<M, V>(), CommonContract.Presenter<V> {
 
     override fun addCollectArticle(id: Int) {
-        mModel?.addCollectArticle(id)?.ss(mModel, mView) {
-            mView?.showCollectSuccess(true)
+        model?.addCollectArticle(id)?.ss(model, view) {
+            view?.showCollectSuccess(true)
         }
     }
 
     override fun cancleCollectArticle(id: Int) {
-        mModel?.addCollectArticle(id)?.ss(mModel, mView) {
-            mView?.showCancelCollectSuccess(true)
+        model?.addCollectArticle(id)?.ss(model, view) {
+            view?.showCancelCollectSuccess(true)
         }
     }
 

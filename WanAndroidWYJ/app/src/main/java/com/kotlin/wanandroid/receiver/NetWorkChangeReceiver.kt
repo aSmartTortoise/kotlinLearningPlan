@@ -17,11 +17,11 @@ class NetWorkChangeReceiver: BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val connected = NetworkUtils.isNetworkConnected(context)
         if (connected) {
-            if (connected != hasNetwork) {
-                EventBus.getDefault().post(NetworkChangeEvent(connected))
+            if (!hasNetwork) {
+                EventBus.getDefault().post(NetworkChangeEvent(true))
             }
         } else {
-            EventBus.getDefault().post(NetworkChangeEvent(connected))
+            EventBus.getDefault().post(NetworkChangeEvent(false))
         }
     }
 }

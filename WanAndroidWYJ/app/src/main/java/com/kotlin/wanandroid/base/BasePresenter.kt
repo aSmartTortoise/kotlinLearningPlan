@@ -9,23 +9,23 @@ import io.reactivex.disposables.Disposable
 import org.greenrobot.eventbus.EventBus
 
 abstract class BasePresenter<M: IModel, V: IView> : IPresenter<V>, LifecycleObserver {
-    protected var mModel: M? = null
-    protected var mView: V? = null
+    protected var model: M? = null
+    protected var view: V? = null
     private val mIsViewAttached: Boolean
-        get() = mView != null
+        get() = view != null
     private var mCompositeDisposable: CompositeDisposable? = null
 
     open fun createModel(): M? = null
 
     open fun useEventBus(): Boolean = false
 
-    override fun attachView(mView: V) {
-        this.mView = mView
-        this.mModel = createModel()
-        if (mView is LifecycleOwner) {
-            (mView as LifecycleOwner).lifecycle.addObserver(this)
-            if (mModel != null && mModel is LifecycleObserver) {
-                (mView as LifecycleOwner).lifecycle.addObserver((mModel as LifecycleObserver))
+    override fun attachView(view: V) {
+        this.view = view
+        this.model = createModel()
+        if (view is LifecycleOwner) {
+            (view as LifecycleOwner).lifecycle.addObserver(this)
+            if (model != null && model is LifecycleObserver) {
+                (view as LifecycleOwner).lifecycle.addObserver((model as LifecycleObserver))
             }
         }
 
@@ -40,9 +40,9 @@ abstract class BasePresenter<M: IModel, V: IView> : IPresenter<V>, LifecycleObse
         }
 
         unDispose()
-        mModel?.onDetach()
-        this.mModel = null
-        this.mView = null
+        model?.onDetach()
+        this.model = null
+        this.view = null
     }
 
     private fun unDispose() {

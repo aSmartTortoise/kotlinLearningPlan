@@ -14,17 +14,17 @@ class HomePresenter : CommonPreseter<HomeContract.Modle, HomeContract.View>(), H
     override fun createModel(): HomeContract.Modle = HomeModel()
 
     override fun requestBanner() {
-        mModel?.requestBanner()?.ss(mModel, mView, false) {
-            mView?.setBanner(it.data)
+        model?.requestBanner()?.ss(model, view, false) {
+            view?.setBanner(it.data)
         }
     }
 
     override fun requestHomeData() {
         requestBanner()
         val observable = if (SettingUtil.getIsShowTopArticle()) {
-            mModel?.requestArticles(0)
+            model?.requestArticles(0)
         } else {
-            Observable.zip(mModel?.requestTopArticles(), mModel?.requestArticles(0),
+            Observable.zip(model?.requestTopArticles(), model?.requestArticles(0),
                 BiFunction<HttpResult<MutableList<Article>>, HttpResult<ArticleResponseBody>,
                         HttpResult<ArticleResponseBody>> { t1, t2 ->
                     t1.data.forEach {
@@ -35,14 +35,14 @@ class HomePresenter : CommonPreseter<HomeContract.Modle, HomeContract.View>(), H
                 }
             )
         }
-        observable?.ss(mModel, mView, false) {
-            mView?.setArticles(it.data)
+        observable?.ss(model, view, false) {
+            view?.setArticles(it.data)
         }
     }
 
     override fun requestArticles(num: Int) {
-        mModel?.requestArticles(num)?.ss(mModel, mView, false) {
-            mView?.setArticles(it.data)
+        model?.requestArticles(num)?.ss(model, view, false) {
+            view?.setArticles(it.data)
         }
     }
 }

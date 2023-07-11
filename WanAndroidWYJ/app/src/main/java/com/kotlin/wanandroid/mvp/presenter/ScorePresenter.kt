@@ -9,8 +9,8 @@ class ScorePresenter : BasePresenter<ScoreContract.Model, ScoreContract.View>(),
     override fun createModel(): ScoreContract.Model = ScoreModel()
 
     override fun getUserScoreList(page: Int) {
-        mModel?.getUserScoreList(page)?.ss(mModel, mView) {
-            mView?.showUserScoreList(it.data)
+        model?.getUserScoreList(page)?.ss(model, view) {
+            view?.showUserScoreList(it.data)
         }
     }
 }

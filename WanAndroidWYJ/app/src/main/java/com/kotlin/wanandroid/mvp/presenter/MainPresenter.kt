@@ -17,14 +17,14 @@ class MainPresenter : BasePresenter<MainContract.Model, MainContract.View>(), Ma
     override fun createModel(): MainContract.Model? = MainModel()
 
     override fun logout() {
-        mModel?.logout()?.ss(mModel, mView) {
-            mView?.showLogoutSuccess(success = true)
+        model?.logout()?.ss(model, view) {
+            view?.showLogoutSuccess(success = true)
         }
     }
 
     override fun getUserInfo() {
-        mModel?.getUserInfo()?.sss(mView, false, {
-            mView?.showUserInfo(it.data)
+        model?.getUserInfo()?.sss(view, false, {
+            view?.showUserInfo(it.data)
         }, {})
     }
 

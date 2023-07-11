@@ -9,8 +9,8 @@ class RankPresenter : BasePresenter<RankContract.Model, RankContract.View>(), Ra
     override fun createModel(): RankContract.Model? = RankModel()
 
     override fun getRankList(page: Int) {
-        mModel?.getRankList(page)?.ss(mModel, mView) {
-            mView?.showRankList(it.data)
+        model?.getRankList(page)?.ss(model, view) {
+            view?.showRankList(it.data)
         }
     }
 }

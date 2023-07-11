@@ -9,8 +9,8 @@ class RegistPresenter : BasePresenter<RegisterContract.Model, RegisterContract.V
     override fun createModel(): RegisterContract.Model? = RegistModel()
 
     override fun regist(userName: String, pwd: String, rePwd: String) {
-        mModel?.regist(userName, pwd, rePwd)?.ss(mModel, mView) {
-            mView?.run {
+        model?.regist(userName, pwd, rePwd)?.ss(model, view) {
+            view?.run {
                 if (it.errorCode != 0) {
                     registFail()
                 } else {
