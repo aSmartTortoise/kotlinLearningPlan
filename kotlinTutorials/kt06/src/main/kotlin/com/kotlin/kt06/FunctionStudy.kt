@@ -1,6 +1,5 @@
 package com.kotlin.kt06
 
-import kotlin.jvm.functions.FunctionN
 
 /**
  *  16 函数
@@ -21,13 +20,18 @@ import kotlin.jvm.functions.FunctionN
  *              表示接受类型是A、B的两个参数和返回一个C类型的函数类型。参数列表可以为空。函数类型
  *              可以有一个额外的接受者类型，例如A.(B) -> C
  *              函数类型在表示的时候可以选择性地在参数列表中包含参数名，例如(x: Int, y: Int) -> Point
- *              如需将函数类型指定为可空类型则：((x: Int, y: Int) - > Int)?
+ *              如需将函数类型指定为可空类型则：((x: Int, y: Int) -> Int)?
  *              函数类型对应的类为FunctionN，FunctionN中定义了invoke方法，其中N表示函数类型
- *              中的参数的个数。函数类型的实例可以直接当函数调用-其实质是调用invoke函数。
+ *              中的参数的个数。函数类型的实例可以直接当函数调用-其实质是调用invoke函数。在
+ *              kotlin-stdlib-xxx.jar包中的kotlin.jvm.functions路径下
  *              函数类型和String、Int类型一样，是一种独立类型。lambda只是实现函数类型实例化的一种
  *              方式。
  *              Unit返回类型不能省略。
  *              函数类型和普通类型一样，可以被继承。
+ *          https://juejin.cn/post/7078207132453044238#heading-6
+ *          高阶函数在编译为Java代码之后，高阶函数的函数类型参数的数据类型为FunctionN，调用函数的地方实际参数为匿名内部类。
+ *          将Kotlin代码反编译为Java代码的步骤如下：
+ *          Tools-Kotlin-Show Kotlin Bytecode-Decompile
  *         16.4.2 函数类型的实例化
  *              (1)使用lambda表达式或匿名函数进行实例化。
  *              (2)使用实现函数类型接口的自定义类的实例。
@@ -36,7 +40,8 @@ import kotlin.jvm.functions.FunctionN
  *         16.4.3 匿名函数
  *              匿名函数的参数只能在括号内传递，这与普通函数声明时一样的，而Lambda表达式作为函数的最后一个参数
  *              其可以在圆括号以外。
- *         16.4.4 lambda表达式 https://www.cnblogs.com/Jetictors/p/8647888.html
+ *         16.4.4 lambda表达式
+ *              https://www.cnblogs.com/Jetictors/p/8647888.html
  *              lambda表达式的本质其实是匿名函数，底层是通过匿名函数实现的。
  *              特点：
  *              (1)总是被大括号扩着。
@@ -52,16 +57,17 @@ import kotlin.jvm.functions.FunctionN
  *              在Kotlin中提供了指定的接受者对象调用Lambda表达式的功能。在函数字面值的函数体中，可以调用
  *              接受者对象的方法而无需任何额外的限定符，它允许在函数体中访问接受者对象的成员。
  *         16.4.4 闭包
- *              闭包即函数中包含函数，这里的函数包括：匿名函数、lambda表达式、局部函数、对象表达式。
+ *              闭包可以理解为函数内部的函数，闭包可以访问外部函数定义的局部变量。
  *              Java是不支持闭包的，Kotlin支持闭包。
  *              Kotlin中几种闭包的表现形式。
  *        16.4.5 函数引用
  *              https://juejin.cn/post/6930978099987398670
  *              https://www.jianshu.com/p/10358883455c
- *              https://juejin.cn/post/6930978099987398670
+ *              由域作用符 + 函数名构成函数引用，实现函数类型的实例化。
  *              Kotlin提供的限定符 :: 可以由具名函数的函数名得到对应的函数引用。
  *              具体有 类名::函数名（对象声明中的函数或者伴生对象的函数）
  *              对象应用::函数名（成员函数） ::函数名（顶层函数、局部函数）
+ *
  *
  *        16.5 内联函数 https://segmentfault.com/a/1190000038996559
  *        16.5.1 内联函数的概念
@@ -88,7 +94,8 @@ import kotlin.jvm.functions.FunctionN
                 调用的是函数体）、减少了函数引用的对象的创建。
 
                 inline修饰符影响函数本身和传递给它的Lambda表达式：所有这些都将内联到调用处。
-            16.5.3 禁用内联 https://www.kotlincn.net/docs/reference/inline-functions.html
+            16.5.3 禁用内联
+                https://www.kotlincn.net/docs/reference/inline-functions.html
                 如果只希望内联一部分传递给内联函数的函数应用的参数，那么可以使用oninline修饰符
                 修饰不希望内联的函数引用的参数。
                 inline fun foo(inlined: () -> Unit, noinline noinlined: () -> Unit): Unit {}
@@ -129,6 +136,15 @@ fun increament(i: Int): Int {
     return i + 1
 }
 
+/**
+ *  对象声明
+ */
+object SumObject {
+    fun sum(x: Int): Int = x + 1
+}
+
+
+
 class FunctionExample {
     fun printHello(name: String?): Unit {
         if (name != null) println("Hello, $name")
@@ -145,6 +161,7 @@ class FunctionExample {
 
     val m: (Int) -> String = fun(x: Int) = "$x,"//匿名函数作为函数类型的实例
     val n: (Int) -> Int = {it + 5}//只有一个参数的Lambada表达式的函数类型的声明
+    var a = 100
 
     fun sum(it: Int): Int = it + 1
 
@@ -157,7 +174,7 @@ class FunctionExample {
     /**
      * 高阶函数
      */
-    fun test2(a: Int, b: (Int) -> Int): Int {
+    inline fun test2(a: Int, b: (Int) -> Int): Int {
         return a + b(a)
     }
 
@@ -213,7 +230,16 @@ class FunctionExample {
         hello()
     }
 
-
+    /**
+     *  闭包
+     */
+    fun foo2(): Int {
+        val a = 2
+        fun f1(): Int {
+            return a + 10
+        }
+        return f1()
+    }
 }
 
 /**
@@ -247,11 +273,22 @@ fun main(args: Array<String>) {
     //使用标识符 :: 由具名函数的函数名 获取函数引用
     println("函数引用之顶层方法 ${functionExample.test2(10, ::increament)}")
     println("函数引用之成员方法 ${functionExample.test2(10, functionExample::sum)}")
+    println("函数引用之对象声明中的方法 ${functionExample.test2(10, SumObject::sum)}")
+    println("------------属性引用演示--------")
+    println("属性引用:${functionExample::m.get()}")
+    println("属性引用:${functionExample::m.get()(5)}")
+    println("属性引用:${functionExample::a.get()}")
+    functionExample::a.set(101)
+    println("属性引用:${functionExample::a.get()}")
+    println("属性引用:${functionExample::class.java}")
+    println("属性引用:${FunctionExample::class}")//获取KClass
     println("------------闭包演示-------------")
     var test1 = functionExample.test1(10)
     println(test1.invoke())
     println(test1.invoke())
     println(test1.invoke())
+
+    println(functionExample.foo2())
     println("-----------------内联函数------------")
     val ints = intArrayOf(1, 2, 3, 4, 5)
     ints.forEach {
