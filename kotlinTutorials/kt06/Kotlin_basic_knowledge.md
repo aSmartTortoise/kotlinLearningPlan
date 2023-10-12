@@ -152,3 +152,60 @@ https://www.jianshu.com/p/10358883455c
 ### 16.4.5 属性引用
 域作用符不仅可以引用函数，也可以引用属性。
 
+## 16.5 内联函数 
+https://segmentfault.com/a/1190000038996559
+
+使用高阶函数会带来一些性能上的损失：高阶函数的函数体中有关函数类型的对象带来的内存分配和高阶函数
+的虚拟调用会带来运行时间的开销。而将高阶函数内联化后可减少了高阶函数的调用（直接
+调用的是函数体）、减少了函数引用的对象的创建。 其原理：在编译期，把调用这个函数的地方用这个函数的方法
+体进行替换。
+
+```K
+               val ints = intArrayOf(1, 2, 3, 4, 5)
+               ints.forEach {
+                   println("Hello $it")
+               }
+
+               forEach函数的定义为：
+               public inline fun forEach(action: (Int) -> Unit): Unit {
+                   for(element in this) action(element)
+               }
+```
+
+forEach函数被inline修饰，它是一个内联函数。
+### 16.5.1 内联函数的定义
+内联函数的定义很简单，就是用inline修饰的函数。
+虽然说内联函数可以减少函数的调用来优化性能，但是并不是每一个函数前加inline修饰就可以优化性能。
+我们一般将高阶函数定义为内联函数。inline修饰符影响函数本身和传递给它的Lambda表达式：
+所有这些都将内联到调用处。
+### 16.5.2 禁用内联
+https://www.kotlincn.net/docs/reference/inline-functions.html
+如果只希望内联一部分传递给内联函数的函数类型的参数，那么可以使用noinline修饰符修饰不希望内联的
+函数类型的参数。
+```K
+inline fun foo(inlined: () -> Unit, noinline noinlined: () -> Unit): Unit {}
+```
+可以内联的函数类型的参数，只能在内联函数的内部调用或者作为可以内联的参数传递，但是被noinline修饰
+的函数类型的参数，可以以任何我们喜欢的方式操作：存储在字段中、传递它等。
+### 16.5.3 非局部返回
+https://www.kotlincn.net/docs/reference/inline-functions.html
+
+[Kotlin Lambda详解及非局部返回是啥意思？](https://blog.csdn.net/u011288271/article/details/108385586)
+
+在Kotlin中，我们只能对具名函数或匿名函数使用正常的、非限定的return返回。这意味着要
+退出一个Lambda表达式，我们必须使用标签，并且在Lambda表达式内部禁止使用裸return，因为Lambada
+表达式不能使包含它的函数返回。
+Lambda禁止使用return关键字，但是可以使用限定的返回语法：return@函数名 显示返回一个值，否则
+则隐式返回最后一个表达式的值。
+一个不带标签的return语句总是在使用fun关键字声明的函数中返回。
+内联函数中的Lambda表达式可以使用非限定的return语句，返回的是外部那个调用内联函数的函数，而不是
+内联函数本身。这就叫内联函数的Lambda表达式的非局部返回。
+### 16.5.7 公有api内联函数的限制
+当一个函数被public或者protected修饰的时候，它就是一个模块级的公有api，可以在其他模块中调用它。
+这样对于公有api的内联函数来说，当本模块的的api发生变更时导致其他调用这个内联函数的模块
+发生二进制兼容的风险。声明一个内联函数但调用它的模块在它发生改变时并没有重新编译。
+为了消除由非公有api变更引起的二进制兼容的风险，公有api的内联函数的函数体内不允许使用非公有
+的声明，即不允许使用由private或internal修饰的声明或其他组件。一个internal声明，可以由
+@PublishedApi标注，这允许在公有api的内联函数的函数体内部使用该api。当一个internal修饰的
+内联函数被标记为@PublishedApi时，它会像公有函数一样检测其函数体。
+
