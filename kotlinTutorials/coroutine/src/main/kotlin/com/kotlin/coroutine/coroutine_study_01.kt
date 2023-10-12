@@ -3,7 +3,7 @@ package com.kotlin.coroutine
 import kotlinx.coroutines.*
 
 /**
- *  19 携程
+ *  19 协程
  *  https://johnnyshieh.me/posts/kotlin-coroutine-introduction/
  *  19.1 挂起函数
  *      被修饰符suspend修饰的函数。挂起函数通普通函数一样接收参数和返回结果。调用挂起函数会引起协程挂
@@ -169,7 +169,12 @@ private fun withContextFunctionStudy0() {
 
 private fun launchFunctionStudy0() {
     GlobalScope.launch {
-        println("构建并启动了一个协程。")
+        println("构建并启动了一个协程, context:$coroutineContext, thread name is:${Thread.currentThread().name}")
     }
+
+    GlobalScope.launch(Dispatchers.IO) {
+        println("Dispatchers.io context:$coroutineContext, thread name is:${Thread.currentThread().name}")
+    }
+    Thread.sleep(1_000)
     println("main, end~")
 }
