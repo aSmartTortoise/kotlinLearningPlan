@@ -59,10 +59,10 @@ import kotlinx.coroutines.*
  */
 
 fun main() {
-    launchFunctionStudy0()
+//    launchFunctionStudy0()
 
 //    launchFunctionStudy01()
-//    withContextFunctionStudy0()
+    withContextFunctionStudy0()
 //    suspendFuctionSuspendResumeStudy()
 //    suspendCoroutineNotBlockThreadStudy()
 //    coroutineRunThreadWhenResume()
@@ -85,6 +85,7 @@ private fun coroutineRunThreadWhenResume() {
             println("unconfined, after delay in thread ${Thread.currentThread().name}")
         }
     }
+    println(" runBlocking 创建协程")
 }
 
 /**

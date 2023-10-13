@@ -139,6 +139,35 @@ Dispatchers.Default，Dispatchers.IO, Dispatchers.Main, Dispatchers.UnConfined�
 #### 19.2.5.4 Dispatchers.Unconfined
 没有指定协程所在的线程，默认就是上游的线程。在协程的构建器中不能指定该种类型的
 CoroutineDispatcher。
+#### 19.2.6 Job
+Job是一个接口，继承了CoroutineContext.Element。它具有生命周期周期，可以被取消，有六种状态，
+分别是New, Active, Completing, Cancelling, Cancelled, Completed。Cancelled也
+是一种完成状态。
+
+Job可以被组织成父子层级关系，父Job的取消会递归导致所有的子Job取消，子Job如果因为运行过程中出
+现异常而被取消，也会导致父Job被取消，进而导致其他子Job被取消。
+
+Completing状态是Job内部的一个状态，该状态下parent Job在等待child Job，对于外部观察者来说，
+Completing状态仍然是Active。
+
+Job接口及其派生接口中定义的函数都是线程安全的。
+
+Job完成后是没有result的。
+#### 19.2.7 Deferred
+Deferred是一个接口，继承Job，它的完成是有result的。在Deferred完成后，通过await方法获取
+result。
+## 19.3 Coroutine builders
+创建协程的方法。
+### 19.3.1 CoroutineScope.launch
+创建一个协程，不阻塞当前线程，
+### 19.3.2 runBlocking
+创建一个协程，阻塞当前线程，直到协程完成。是为main函数和测试中使用协程设计的。
+### 19.3.3 withContext
+不会创建协程，在指定的协程上运行挂起代码块，挂起协程直到代码块运行完成。
+### 19.3.4 async
+创建一个协程，不阻塞当前线程，返回的Deferred。
+
+
 
 
 
