@@ -6,6 +6,8 @@
 3 [Kotlin Coroutine github](https://github.com/Kotlin/kotlinx.coroutines)
 
 4 [Kotlin Coroutines(协程) 完全解析（二），深入理解协程的挂起、恢复与调度](https://www.jianshu.com/p/2979732fb6fb)
+
+5 [Kotlin Coroutines(协程) 完全解析（三），封装异步回调、协程间关系及协程的取消](https://www.jianshu.com/p/2857993af646)
 ## 19.1 为什么需要协程？
 协程可以是异步编程更简洁和可阅读。
 
@@ -196,6 +198,54 @@ fun postItem(item: Item) {
 协程的挂起是通过suspend函数实现，协程的恢复是通过Continuation.resumeWith实现。
 
 协程从挂起点恢复后所在的线程由挂起函数所在的线程决定。
+
+## 19.5 协程的取消
+对于协程的取消，Job#cancel()只是将协程的状态修改为已取消状态，并不能取消协程的运算逻辑，
+协程库中很多挂起函数都会检测协程状态，如果想及时取消协程的运算，最好使用isActive判断协程状态,
+作为结束协程运算逻辑的条件。
+```K
+fun main(args: Array<String>): Unit = runBlocking {
+    val job1 = launch(Dispatchers.Default) {
+        repeat(5) {
+            println("job1 sleep ${it + 1} times")
+            // job1.cancel之后，协程的状态是Cancelled，delay会坚持协程（Job）的状态，从而不再继续执行下去。
+            delay(500)
+        }
+    }
+    delay(700)
+    job1.cancel()
+    val job2 = launch(Dispatchers.Default) {
+        var nextPrintTime = 0L
+        var i = 1
+        // job2.cancel调用之后，没有判断协程（Job）的状态，所以循环体的代码仍然会执行，
+        // 可以使用isActive获取协程的状态来作为条件。
+        while (i <= 5) {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime >= nextPrintTime) {
+                println("job2 sleep ${i++} ...")
+                nextPrintTime = currentTime + 500L
+            }
+        }
+    }
+    delay(700)
+    job2.cancel()
+}
+```
+## 19.6 协程Job之间的关系
+GlobalScope.launch{}和GlobalScope.async{}新建的协程是没有父协程的，而在协程
+中使用launch{}和async{}一般都是子协程。对于父子协程需要注意下面三种关系：
+
+父协程手动调用cancel()或者异常结束，会立即取消它的所有子协程。
+
+父协程必须等待所有子协程完成（处于完成或者取消状态）才能完成。
+
+子协程抛出未捕获的异常时，默认情况下会取消其父协程。
+
+## 19.7 协程的核心api
+### yield
+挂起当前协程，让CoroutineDispatcher维护的线程运行其他协程。当其他协程执行完成或也
+让出执行权时，协程恢复运行。
+
 
 
 

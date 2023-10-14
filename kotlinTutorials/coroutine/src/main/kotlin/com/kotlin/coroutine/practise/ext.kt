@@ -11,18 +11,7 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 fun main(args: Array<String>): Unit = runBlocking {
-    launch {
-        repeat(3) {
-            println("job1 repeat $it times")
-            yield()
-        }
-    }
-    launch {
-        repeat(3) {
-            println("job2 repeat $it times")
-            yield()
-        }
-    }
+
 }
 suspend fun Call.await(): ResponseBody = suspendCancellableCoroutine { cont ->
     enqueue(object : Callback {

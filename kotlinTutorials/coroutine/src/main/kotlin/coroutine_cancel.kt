@@ -3,10 +3,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+/**
+ *  https://www.jianshu.com/p/2857993af646
+ */
 fun main(args: Array<String>): Unit = runBlocking {
     val job1 = launch(Dispatchers.Default) {
         repeat(5) {
             println("job1 sleep ${it + 1} times")
+            // job1.cancel之后，协程的状态是Cancelled，delay会坚持协程（Job）的状态，从而不再继续执行下去。
             delay(500)
         }
     }
