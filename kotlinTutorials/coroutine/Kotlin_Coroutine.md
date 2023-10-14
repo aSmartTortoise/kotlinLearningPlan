@@ -5,6 +5,7 @@
 
 3 [Kotlin Coroutine github](https://github.com/Kotlin/kotlinx.coroutines)
 
+4 [Kotlin Coroutines(协程) 完全解析（二），深入理解协程的挂起、恢复与调度](https://www.jianshu.com/p/2979732fb6fb)
 ## 19.1 为什么需要协程？
 协程可以是异步编程更简洁和可阅读。
 
@@ -127,7 +128,7 @@ EmptyCoroutineContext是个对象，实现了CoroutineContext，集合为空。
 DEFAULT, LAZILY, ATOMIC, UNDISPATCHED四种。
 
 ### 19.2.5 CoroutineDispatcher
-协程调度器，决定协程所在的线程，coroutines-core库中内置了三种协程调度器，分别是
+协程调度器，也叫做协程的线程调度器，决定协程所在的线程，coroutines-core库中内置了三种协程调度器，分别是
 Dispatchers.Default，Dispatchers.IO, Dispatchers.Main, Dispatchers.UnConfined。
 #### 19.2.5.1 Dispatchers.Default
 内部维护了一个线程池，该线程池核心线程数至少是2个至多是设备的cpu数目个，最大线程数为2的21次方-1个
@@ -166,6 +167,35 @@ result。
 不会创建协程，在指定的协程上运行挂起代码块，挂起协程直到代码块运行完成。
 ### 19.3.4 async
 创建一个协程，不阻塞当前线程，返回的Deferred。
+## 19.4 挂起函数的工作原理
+协程的内部使用了Kotlin编译器的一些编译技术，当调用挂起函数时，都有一个隐式的对象传入，该对象
+是Continuation，它封装了协程从最后挂起点恢复执行的逻辑。
+### 19.4.1 Continuation
+是一个接口，封装了协程从挂起点恢复执行的逻辑。
+
+协程中的代码经Kotlin编译器编译后，挂起函数被将协程中的执行过程拆分成Continuation片段，利用状态机的
+控制逻辑保证各个Continuation片段按顺序执行。
+
+```K
+fun postItem(item: Item) {
+    GlobalScope.launch {
+        // await() 是挂起函数，当前协程执行逻辑卡在第一个分支，第一种状态，当 async 的
+        // 协程执行完后恢复当前协程，才会切换到下一个分支
+        val token = async { requestToken() }.await()
+        // 在第二个分支状态中，又新建一个协程，使用 await 挂起函数将之后代码作为 
+        // Continuation 放倒下一个分支状态，直到 async 协程执行完
+        val post = aync { createPost(token, item) }.await()
+        // 最后一个分支状态，直接在当前协程处理
+        processPost(post)
+    }
+}
+```
+挂起函数不一定会挂起协程，当挂起函数的结果可用，库可以决定不挂起协程而继续执行。挂起函数可能会挂起
+协程，但是不会阻塞线程。
+
+协程的挂起是通过suspend函数实现，协程的恢复是通过Continuation.resumeWith实现。
+
+协程从挂起点恢复后所在的线程由挂起函数所在的线程决定。
 
 
 

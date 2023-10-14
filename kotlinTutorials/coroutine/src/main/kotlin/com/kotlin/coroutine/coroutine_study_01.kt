@@ -62,10 +62,31 @@ fun main() {
 //    launchFunctionStudy0()
 
 //    launchFunctionStudy01()
-    withContextFunctionStudy0()
+//    withContextFunctionStudy0()
 //    suspendFuctionSuspendResumeStudy()
 //    suspendCoroutineNotBlockThreadStudy()
-//    coroutineRunThreadWhenResume()
+    coroutineRunThreadWhenResume()
+
+//    suspendFunctionStudy()
+}
+
+/**
+ *  挂起函数可能会挂起协程，但是不会阻塞线程。
+ */
+private fun suspendFunctionStudy() {
+    val coroutineDispatcher = newSingleThreadContext("ctx")
+    GlobalScope.launch(coroutineDispatcher) {
+        println("the first coroutine")
+        delay(200)
+        println("the first coroutine")
+    }
+    GlobalScope.launch(coroutineDispatcher) {
+        println("the second coroutine")
+        delay(100)
+        println("the second coroutine")
+    }
+    // 保证 main 线程存活，确保上面两个协程运行完成
+    Thread.sleep(500)
 }
 
 /**
