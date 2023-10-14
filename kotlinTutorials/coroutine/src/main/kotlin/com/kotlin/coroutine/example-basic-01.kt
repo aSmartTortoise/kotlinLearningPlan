@@ -216,7 +216,7 @@ private fun flowStudy24LaunchIn() {
         }
             .onCompletion { println("done") }
             .launchIn(this)
-        println("main")
+        println("com.kotlin.coroutine.practise.main")
     }
 }
 
@@ -399,7 +399,7 @@ private fun flowStudy10FlowOn() {
 /**
  * withContext在协程中改变上下文，flow构建器中的代码遵循上下文保存属性，不允许从其他上下文中发射值
  * 会出现异常。
- * Exception in thread "main" java.lang.IllegalStateException: Flow invariant is violated:
+ * Exception in thread "com.kotlin.coroutine.practise.main" java.lang.IllegalStateException: Flow invariant is violated:
 Flow was collected in [BlockingCoroutine{Active}@3baaf4d9, BlockingEventLoop@5e04eedf],
 but emission happened in [DispatchedCoroutine{Active}@76fe6e5e, Dispatchers.Default].
 Please refer to 'flow' documentation or use 'flowOn' instead
@@ -514,9 +514,9 @@ private fun flowStudy0() {
  */
 private fun threadLocalData() {
     runBlocking {
-        threadLocal.set("main")
+        threadLocal.set("com.kotlin.coroutine.practise.main")
         println(
-            "pre-main:current thread: ${Thread.currentThread().name}" +
+            "pre-com.kotlin.coroutine.practise.main:current thread: ${Thread.currentThread().name}" +
                     " threadLocal value:${threadLocal.get()}"
         )
         val job = launch(Dispatchers.Default + threadLocal.asContextElement(value = "launch")) {
@@ -532,19 +532,19 @@ private fun threadLocalData() {
         }
         job.join()
         println(
-            "post-main: current thread:${Thread.currentThread().name}" +
+            "post-com.kotlin.coroutine.practise.main: current thread:${Thread.currentThread().name}" +
                     " threadLocal value: ${threadLocal.get()}"
         )
     }
 }
 
-//fun main(args: Array<String>) {
+//fun com.kotlin.coroutine.practise.main(args: Array<String>) {
 //    startGlobalScopeCoroutin()
 //    startANormalThread()
 //    runBlockingTest()
 //    jobJoinStudy()
 //}
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    //CoroutineScope的实例将在该作用域中得以引用。不需要使用Job引用并join操作，避免了对协程引用的资源得不到
 //    //及时释放的问题。
 //    launch {
@@ -554,7 +554,7 @@ private fun threadLocalData() {
 //    println("hello world, ")
 //}
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    launch {
 //        suspendFuctionStudy()
 //    }
@@ -572,7 +572,7 @@ private fun threadLocalData() {
 //    println("Coroutine scope is over!")
 //}
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    GlobalScope.launch {
 //        repeat(1000) {
 //            println("I am sleeping $it")
@@ -583,7 +583,7 @@ private fun threadLocalData() {
 //    delay(1300L)
 //}
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    val job = launch {
 //        repeat(1000) {
 //            println("job i am sleeping $it")
@@ -599,7 +599,7 @@ private fun threadLocalData() {
 //    println("now i am quit!")
 //}
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    val startTime = System.currentTimeMillis()
 //    val job = launch(Dispatchers.Default) {
 //        var nextPrintTime = startTime
@@ -612,7 +612,7 @@ private fun threadLocalData() {
 //        }
 //    }
 //
-//    println("main thread will be blocked")
+//    println("com.kotlin.coroutine.practise.main thread will be blocked")
 //    delay(1300L)
 //    println("i am tired of waiting!")
 //    job.cancelAndJoin()
@@ -620,7 +620,7 @@ private fun threadLocalData() {
 //    println("now i am quit!")
 //}
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    val startTime = System.currentTimeMillis()
 //    val job = launch(Dispatchers.Default) {
 //        var nextPrintTime = startTime
@@ -633,14 +633,14 @@ private fun threadLocalData() {
 //        }
 //    }
 //
-//    println("main thread will to be blocked.")
+//    println("com.kotlin.coroutine.practise.main thread will to be blocked.")
 //    delay(1300L)
-//    println("main , i am tired of waiting.")
+//    println("com.kotlin.coroutine.practise.main , i am tired of waiting.")
 //    job.cancelAndJoin()
-//    println("main, now i am out")
+//    println("com.kotlin.coroutine.practise.main, now i am out")
 //}
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    val job = launch(Dispatchers.Default) {
 //        try {
 //            repeat(1000) {
@@ -659,12 +659,12 @@ private fun threadLocalData() {
 //    }
 //
 //    delay(2000L)
-//    println("main, i am tired of waiting.")
+//    println("com.kotlin.coroutine.practise.main, i am tired of waiting.")
 //    job.cancelAndJoin()
-//    println("main, now i am out.")
+//    println("com.kotlin.coroutine.practise.main, now i am out.")
 //}
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    withTimeout(1300L) {
 //        repeat(1000) {
 //            println(" i am sleeping $it")
@@ -673,7 +673,7 @@ private fun threadLocalData() {
 //    }
 //}
 
-//fun main() = runBlocking<Unit> {
+//fun com.kotlin.coroutine.practise.main() = runBlocking<Unit> {
 ////    defaultOrderExecute()
 ////    asyncFunctionStudy()
 //    val time = measureTimeMillis {
@@ -686,7 +686,7 @@ private fun threadLocalData() {
 //    println("complete in $time ms.")
 //}
 
-//fun main() = runBlocking<Unit> {
+//fun com.kotlin.coroutine.practise.main() = runBlocking<Unit> {
 //    launch {
 //        println("i am woring in thread:${Thread.currentThread().name}")
 //    }
@@ -714,7 +714,7 @@ private fun childCoroutineStudy0() {
         delay(500L)
         request.cancel()
         delay(1000)
-        log("main: who has survived request cancellation?")
+        log("com.kotlin.coroutine.practise.main: who has survived request cancellation?")
     }
 }
 
@@ -743,7 +743,7 @@ private fun runBlockingFunctionStudy0() {
         println("runBlocking working in thread ${Thread.currentThread().name}")
     }
     println("Hello")
-    println("main the time is ${System.currentTimeMillis()}")
+    println("com.kotlin.coroutine.practise.main the time is ${System.currentTimeMillis()}")
 }
 
 private suspend fun asyncFunctionStudy() {
@@ -766,7 +766,7 @@ private suspend fun defaultOrderExecute() {
     println("complete in $time ms.")
 }
 
-//fun main() = runBlocking {
+//fun com.kotlin.coroutine.practise.main() = runBlocking {
 //    val result = withTimeoutOrNull(1300L) {
 //        repeat(1000) {
 //            println("i am sleeping $it")

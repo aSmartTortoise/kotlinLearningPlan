@@ -85,7 +85,7 @@ private fun suspendFunctionStudy() {
         delay(100)
         println("the second coroutine")
     }
-    // 保证 main 线程存活，确保上面两个协程运行完成
+    // 保证 com.kotlin.coroutine.practise.main 线程存活，确保上面两个协程运行完成
     Thread.sleep(500)
 }
 
@@ -95,9 +95,9 @@ private fun suspendFunctionStudy() {
 private fun coroutineRunThreadWhenResume() {
     runBlocking {
         launch {
-            println("main runBlocking, i am working in thread ${Thread.currentThread().name}")
+            println("com.kotlin.coroutine.practise.main runBlocking, i am working in thread ${Thread.currentThread().name}")
             delay(300L)
-            println("main runBlocking, after delay in thread ${Thread.currentThread().name}")
+            println("com.kotlin.coroutine.practise.main runBlocking, after delay in thread ${Thread.currentThread().name}")
         }
 
         launch(Dispatchers.Unconfined) {
@@ -120,9 +120,9 @@ private fun suspendCoroutineNotBlockThreadStudy() {
     }
 
     while (!job.isCompleted) {
-        println("main thread working time:${System.currentTimeMillis()}")
+        println("com.kotlin.coroutine.practise.main thread working time:${System.currentTimeMillis()}")
     }
-    println("main thread end")
+    println("com.kotlin.coroutine.practise.main thread end")
 }
 
 private fun suspendFuctionSuspendResumeStudy() {
@@ -154,7 +154,7 @@ suspend fun doSomethingUsefulFour(): Int {
 private fun launchFunctionStudy01() {
     var time = System.currentTimeMillis()
     val startTime = time
-    println("main start time: $time")
+    println("com.kotlin.coroutine.practise.main start time: $time")
     val job = GlobalScope.launch {
         println("launch start")
         delay(10L)
@@ -163,11 +163,11 @@ private fun launchFunctionStudy01() {
     while (!job.isCompleted) {
         time += System.currentTimeMillis()
         if ((time - startTime) > 10L) {
-            println("main going time: $time")
+            println("com.kotlin.coroutine.practise.main going time: $time")
         }
     }
     time += System.currentTimeMillis()
-    println("main end time: $time")
+    println("com.kotlin.coroutine.practise.main end time: $time")
 }
 
 private fun withContextFunctionStudy0() {
@@ -198,5 +198,5 @@ private fun launchFunctionStudy0() {
         println("Dispatchers.io context:$coroutineContext, thread name is:${Thread.currentThread().name}")
     }
     Thread.sleep(1_000)
-    println("main, end~")
+    println("com.kotlin.coroutine.practise.main, end~")
 }
