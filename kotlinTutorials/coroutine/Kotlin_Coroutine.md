@@ -239,12 +239,726 @@ GlobalScope.launch{}和GlobalScope.async{}新建的协程是没有父协程的�
 
 父协程必须等待所有子协程完成（处于完成或者取消状态）才能完成。
 
-子协程抛出未捕获的异常时，默认情况下会取消其父协程。
+子协程抛出未捕获的异常时，默认情况下会取消其父协程，而抛出CancellationException是正常的协程
+取消，不会取消父协程。
 
 ## 19.7 协程的核心api
 ### yield
-挂起当前协程，让CoroutineDispatcher维护的线程运行其他协程。当其他协程执行完成或也
+挂起函数，挂起当前协程，让CoroutineDispatcher维护的线程运行其他协程。当其他协程执行完成或也
 让出执行权时，协程恢复运行。
+### join
+挂起函数，Job的实例函数，会挂起所在的协程直到该Job结束为止。
+
+该函数会检测所在协程的作业是否已取消，如果该函数在调用时候或者挂起所在协程的时候，所在协程的Job
+已取消，则该函数抛出CancellationException。
+## 19.8 协程的创建、启动、线程调度分析
+### 19.8.1 协程的创建、启动
+常见的协程创建的方式是通过CoroutineScope#launch扩展函数创建，如下：
+
+Builders.common.kt
+```K
+public fun CoroutineScope.launch(
+    context: CoroutineContext = EmptyCoroutineContext,
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    block: suspend CoroutineScope.() -> Unit
+): Job {
+    // 1 调用newCoroutineContext函数，继承CoroutineScope中的CoroutineContext，并
+    // 添加默认的CoroutineDispatcher为Dispatchers.Default
+    val newContext = newCoroutineContext(context)
+    val coroutine = if (start.isLazy)
+        LazyStandaloneCoroutine(newContext, block) else
+        // 2 构造StandaloneCoroutine。
+        StandaloneCoroutine(newContext, active = true)
+    // 3 调用AbstractCoroutine#start函数启动协程。
+    coroutine.start(start, coroutine, block)
+    // 4 返回StandaloneCoroutine，是一个Job。
+    return coroutine
+}
+```
+CoroutineContext.kt
+```K
+@ExperimentalCoroutinesApi
+public actual fun CoroutineScope.newCoroutineContext(context: CoroutineContext): CoroutineContext {
+    // 1 继承CoroutineScope的CoroutineContext，添加指定的context，和 CoroutineDispatcher(Dispatchers.Default)
+    val combined = foldCopies(coroutineContext, context, true)
+    val debug = if (DEBUG) combined + CoroutineId(COROUTINE_ID.incrementAndGet()) else combined
+    return if (combined !== Dispatchers.Default && combined[ContinuationInterceptor] == null)
+        debug + Dispatchers.Default else debug
+}
+```
+Builders.common.kt
+```K
+private open class StandaloneCoroutine(
+    parentContext: CoroutineContext,
+    active: Boolean
+) : AbstractCoroutine<Unit>(parentContext, initParentJob = true, active = active) {
+    override fun handleJobException(exception: Throwable): Boolean {
+        handleCoroutineException(context, exception)
+        return true
+    }
+}
+```
+AbstractCoroutine.kt
+```K
+public abstract class AbstractCoroutine<in T>(
+    parentContext: CoroutineContext,
+    initParentJob: Boolean,
+    active: Boolean
+) : JobSupport(active), Job, Continuation<T>, CoroutineScope {
+    ...
+    public fun <R> start(start: CoroutineStart, receiver: R, block: suspend R.() -> T) {
+        // 1 调用CoroutineStart#invoke函数。
+        start(block, receiver, this)
+    }
+}
+```
+StandaloneCoroutine的类层级关系如下。
+StandaloneCoroutine -> AbstractCoroutine
+
+AbstractCoroutine 继承JobSupport，实现了Job, Continuation, CoroutineScope接口。
+
+```K
+public enum class CoroutineStart {
+    ...
+    public operator fun <R, T> invoke(block: suspend R.() -> T, receiver: R, completion: Continuation<T>): Unit =
+        when (this) {
+        // 1 调用函数类型扩展函数startCoroutineCancellable
+            DEFAULT -> block.startCoroutineCancellable(receiver, completion)
+            ATOMIC -> block.startCoroutine(receiver, completion)
+            UNDISPATCHED -> block.startCoroutineUndispatched(receiver, completion)
+            LAZY -> Unit // will start lazily
+        }
+    ...
+}
+```
+
+```K
+Cacellable.kt
+internal fun <R, T> (suspend (R) -> T).startCoroutineCancellable(
+    receiver: R, completion: Continuation<T>,
+    onCancellation: ((cause: Throwable) -> Unit)? = null
+) =
+// 1 函数中的参数receiver和completion 均为StandaloneCoroutine对象
+    runSafely(completion) {
+    // 2 最后调用了Continuation#resumeCancellableWith启动协程。
+        createCoroutineUnintercepted(receiver, completion).intercepted().resumeCancellableWith(Result.success(Unit), onCancellation)
+    }
+```
+https://github.com/JetBrains/kotlin/blob/master/libraries/stdlib/jvm/src/kotlin/coroutines/intrinsics/IntrinsicsJvm.kt
+
+IntrinsicsJvm.kt
+```K
+/**
+ * Creates unintercepted coroutine with receiver type [R] and result type [T].
+ * This function creates a new, fresh instance of suspendable computation every time it is invoked.
+ *
+ * To start executing the created coroutine, invoke `resume(Unit)` on the returned [Continuation] instance.
+ * The [completion] continuation is invoked when coroutine completes with result or exception.
+ *
+ * This function returns unintercepted continuation.
+ * Invocation of `resume(Unit)` starts coroutine immediately in the invoker's call stack without going through the
+ * [ContinuationInterceptor] that might be present in the completion's [CoroutineContext].
+ * It is the invoker's responsibility to ensure that a proper invocation context is established.
+ * Note that [completion] of this function may get invoked in an arbitrary context.
+ *
+ * [Continuation.intercepted] can be used to acquire the intercepted continuation.
+ * Invocation of `resume(Unit)` on intercepted continuation guarantees that execution of
+ * both the coroutine and [completion] happens in the invocation context established by
+ * [ContinuationInterceptor].
+ *
+ * Repeated invocation of any resume function on the resulting continuation corrupts the
+ * state machine of the coroutine and may result in arbitrary behaviour or exception.
+ */
+@SinceKotlin("1.3")
+public actual fun <R, T> (suspend R.() -> T).createCoroutineUnintercepted(
+    receiver: R,
+    completion: Continuation<T>
+): Continuation<Unit> {
+    val probeCompletion = probeCoroutineCreated(completion)
+    return if (this is BaseContinuationImpl)
+        create(receiver, probeCompletion)
+    else {
+        createCoroutineFromSuspendFunction(probeCompletion) {
+            (this as Function2<R, Continuation<T>, Any?>).invoke(receiver, it)
+        }
+    }
+}
+```
+函数创建了一个协程，返回Continuation，通过这个返回的Continuation调用resume(Unit)启动该协程，
+### 19.8.2 协程的线程调度
+```K
+Cacellable.kt
+internal fun <R, T> (suspend (R) -> T).startCoroutineCancellable(
+    receiver: R, completion: Continuation<T>,
+    onCancellation: ((cause: Throwable) -> Unit)? = null
+) =
+// 1 函数中的参数receiver和completion 均为StandaloneCoroutine对象
+    runSafely(completion) {
+        // 2 调用Continuation#intercepted扩展函数。
+        // 3 调用ContinuationImpl#intercepted函数。
+        // 4 调用CoroutineDispatcher#interceptContinuation返回DispatchedContinuation
+        // 5 调用DispatchedContinuation#resumeCancellableWith函数启动协程。
+        createCoroutineUnintercepted(receiver, completion).intercepted().resumeCancellableWith(Result.success(Unit), onCancellation)
+    }
+```
+createCoroutineUnintercepted(receiver, completion)函数返回的是一个Continuation实际上是一个
+SuspendLambda，而这个SuspendLambda是由Kotlin编译器编译的类，该类的invokeSuspend方法封装了
+协程 block的运算逻辑。
+
+ContinuationImpl.kt
+```K
+internal abstract class BaseContinuationImpl(
+    public val completion: Continuation<Any?>?
+) : Continuation<Any?>, CoroutineStackFrame, Serializable {
+
+}
+...
+internal abstract class ContinuationImpl(
+    completion: Continuation<Any?>?,
+    private val _context: CoroutineContext?
+) : BaseContinuationImpl(completion) {
+    ...
+}
+...
+internal abstract class SuspendLambda(
+    public override val arity: Int,
+    completion: Continuation<Any?>?
+) : ContinuationImpl(completion), FunctionBase<Any?>, SuspendFunction {
+    ...
+}
+```
+SuspendLambda的类层级结构为：
+
+SuspendLambda -> ContinuationImpl -> BaseContinuationImpl -> Continuation
+
+IntrinsicsJvm.kt
+```K
+public actual fun <T> Continuation<T>.intercepted(): Continuation<T> =
+    (this as? ContinuationImpl)?.intercepted() ?: this
+```
+ContinuationImpl.kt
+```K
+@Transient
+    private var intercepted: Continuation<Any?>? = null
+
+    public fun intercepted(): Continuation<Any?> =
+        intercepted
+            ?: (context[ContinuationInterceptor]?.interceptContinuation(this) ?: this)
+                .also { intercepted = it }
+```
+CoroutineDispatcher.kt
+```K
+    public final override fun <T> interceptContinuation(continuation: Continuation<T>): Continuation<T> =
+        DispatchedContinuation(this, continuation)
+```
+DispatchedContinuation.kt
+```K
+internal class DispatchedContinuation<in T>(
+    @JvmField internal val dispatcher: CoroutineDispatcher,
+    @JvmField val continuation: Continuation<T>
+) : DispatchedTask<T>(MODE_UNINITIALIZED), CoroutineStackFrame, Continuation<T> by continuation {
+...
+    @Suppress("NOTHING_TO_INLINE")
+    internal inline fun resumeCancellableWith(
+        result: Result<T>,
+        noinline onCancellation: ((cause: Throwable) -> Unit)?
+    ) {
+        val state = result.toState(onCancellation)
+        // 1 这里dispatcher对应于之前分析的Dispatchers.Default，
+        // CoroutineDispatcher#isDispatchNeeded默认返回true。
+        if (dispatcher.isDispatchNeeded(context)) {
+            _state = state
+            resumeMode = MODE_CANCELLABLE
+            // 2 调用dispatch函数。DispatchedContinuation实现了Runnable
+            dispatcher.dispatch(context, this)
+        } else {
+            executeUnconfined(state, MODE_CANCELLABLE) {
+                if (!resumeCancelled(state)) {
+                    resumeUndispatchedWith(result)
+                }
+            }
+        }
+    }
+    ...
+public fun <T> Continuation<T>.resumeCancellableWith(
+    result: Result<T>,
+    onCancellation: ((cause: Throwable) -> Unit)? = null
+): Unit = when (this) {
+    // 1 调用DispatchedContinuation#resumeCancellableWith函数
+    is DispatchedContinuation -> resumeCancellableWith(result, onCancellation)
+    else -> resumeWith(result)
+}
+...
+```
+Dispatchers.kt
+```K
+public actual object Dispatchers {
+    @JvmStatic
+    public actual val Default: CoroutineDispatcher = DefaultScheduler
+    ...
+}
+```
+Dispatcher.kt
+```K
+internal object DefaultScheduler : SchedulerCoroutineDispatcher(
+    CORE_POOL_SIZE, MAX_POOL_SIZE,
+    IDLE_WORKER_KEEP_ALIVE_NS, DEFAULT_SCHEDULER_NAME
+) {
+
+}
+...
+internal open class SchedulerCoroutineDispatcher(
+    private val corePoolSize: Int = CORE_POOL_SIZE,
+    private val maxPoolSize: Int = MAX_POOL_SIZE,
+    private val idleWorkerKeepAliveNs: Long = IDLE_WORKER_KEEP_ALIVE_NS,
+    private val schedulerName: String = "CoroutineScheduler",
+) : ExecutorCoroutineDispatcher() {
+    ...
+    private var coroutineScheduler = createScheduler()
+
+    private fun createScheduler() =
+        CoroutineScheduler(corePoolSize, maxPoolSize, idleWorkerKeepAliveNs, schedulerName)
+    // 接上文分析，调用到了这里。
+    override fun dispatch(context: CoroutineContext, block: Runnable): Unit = coroutineScheduler.dispatch(block)
+    ...
+}
+```
+
+```K
+internal class CoroutineScheduler(
+    @JvmField val corePoolSize: Int,
+    @JvmField val maxPoolSize: Int,
+    @JvmField val idleWorkerKeepAliveNs: Long = IDLE_WORKER_KEEP_ALIVE_NS,
+    @JvmField val schedulerName: String = DEFAULT_SCHEDULER_NAME
+) : Executor, Closeable {
+    ...
+    fun dispatch(block: Runnable, taskContext: TaskContext = NonBlockingContext, tailDispatch: Boolean = false) {
+        // 1 通过内置的线程池执行block，而这里的block就是DispatchedCoroutiation，也就是要执行run方法。
+    }
+}
+```
+
+```K
+internal abstract class DispatchedTask<in T> internal constructor(
+    @JvmField public var resumeMode: Int
+) : SchedulerTask() {
+    ...
+    final override fun run() {
+        ...
+        val taskContext = this.taskContext
+        var fatalException: Throwable? = null
+        try {
+            val delegate = delegate as DispatchedContinuation<T>
+            val continuation = delegate.continuation
+            withContinuationContext(continuation, delegate.countOrElement) {
+                val context = continuation.context
+                val state = takeState() // NOTE: Must take state in any case, even if cancelled
+                val exception = getExceptionalResult(state)
+                val job = if (exception == null && resumeMode.isCancellableMode) context[Job] else null
+                if (job != null && !job.isActive) {
+                    val cause = job.getCancellationException()
+                    cancelCompletedResult(state, cause)
+                    continuation.resumeWithStackTrace(cause)
+                } else {
+                    if (exception != null) {
+                        continuation.resumeWithException(exception)
+                    } else {
+                        // 1 调用Continuation#resume扩展函数。
+                        continuation.resume(getSuccessfulResult(state))
+                    }
+                }
+            }
+        }
+    }
+    ...
+}
+```
+Continuation.kt
+```K
+public inline fun <T> Continuation<T>.resume(value: T): Unit =
+    // 1 调用SuspendLambda的实例方法resumeWith
+    resumeWith(Result.success(value))
+```
+ContinuationImpl.kt
+```
+internal abstract class BaseContinuationImpl(
+    public val completion: Continuation<Any?>?
+) : Continuation<Any?>, CoroutineStackFrame, Serializable {
+    public final override fun resumeWith(result: Result<Any?>) {
+        var current = this
+        var param = result
+        while (true) {
+            ...
+            with(current) {
+                val completion = completion!! // fail fast when trying to resume continuation without completion
+                val outcome: Result<Any?> =
+                    try {
+                        // 1 执行了协程 block中的运算逻辑，协程运行了。并通过try-catch代码块捕获
+                        // 运算逻辑中抛出的异常。
+                        val outcome = invokeSuspend(param)
+                        if (outcome === COROUTINE_SUSPENDED) return
+                        Result.success(outcome)
+                    } catch (exception: Throwable) {
+                        Result.failure(exception)
+                    }
+                releaseIntercepted() // this state machine instance is terminating
+                if (completion is BaseContinuationImpl) {
+                    // unrolling recursion via loop
+                    current = completion
+                    param = outcome
+                } else {
+                    // top-level completion reached -- invoke and return
+                    // 2 调用前文分析的StandaloneCoroutine的实例方法resumeWith（AbstractCoroutine类的方法）
+                    // 该函数结束协程。
+                    completion.resumeWith(outcome)
+                    return
+                }
+            }
+        }
+    }
+    ...
+}
+```
+### 19.8.3 协程的三层包装
+协程其实有三层包装。常用的launch和async返回的Job、Deferred，里面封装了协程状态，提供了取消协程接口，而它们的实例都是
+继承自AbstractCoroutine，它是协程的第一层包装。第二层包装是编译器生成的SuspendLambda的子类，封装了协程的真正运算逻辑，
+继承自BaseContinuationImpl，其中completion属性就是协程的第一层包装。第三层包装是前面分析协程的线程调度时提到的
+DispatchedContinuation，封装了线程调度逻辑，包含了协程的第二层包装。三层包装都实现了Continuation接口，
+通过代理模式将协程的各层包装组合在一起，每层负责不同的功能。
+
+![协程的三层包装](C:\Users\wangjie\Desktop\study\Kotlin_grammar\coroutine\imgs\协程的三层包装.webp)
+
+## 19.9 协程的异常处理
+### 19.9.1 CoroutineExceptionHandler
+是一个接口，继承于CoroutineContext.Element，是协程的CoroutineContext中的一个Element，用于处理未捕获
+的异常。
+
+launch函数创建的协程会产生未捕获的异常，在普通Job中，由launch函数创建的子协程，如果出现了异常，
+异常会传播到parent协程。root协程上下文的CoroutineExceptionHandler可以处理该异常。
+
+如果在supervisorJob中，由launch构建的子协程，如果出现了未捕获的异常，子协程不会将异常传递给parent协程。
+root协程上下文的CoroutineExceptionHandler可以处理该异常
+
+async函数构建的root协程中出现的异常，该异常会反映的返回的Deferred中，通过Deferred#await函数抛出异常，可以
+使用try-catch代码块处理该异常，异常不会导致线程的未捕获的异常。
+
+async函数构建的子协程中出现的异常，该异常会反映的返回的Deferred中，通过Deferred#await函数抛出异常，异常会
+传播到root协程，如果跟协程是由launch函数创建的，如果不使用root协程的CoroutineExceptionHandler处理，
+会导致线程的未捕获异常。
+
+### 19.9.2 coroutineScope
+挂起函数，该函数会创建一个协程，该协程中创建的子协程如果发生了异常，异常会传播到root协程中，且该函数
+会抛出异常，可以通过对该函数使用try-catch来处理异常。
+
+### 19.9.4 supervisorScope
+挂起函数，该函数会创建一个协程，该协程中创建的子协程如果发生了异常，异常不会传播给parent协程，该函数
+不会抛出异常，可以通过子协程上下文的CoroutineExceptionHandler处理该异常。
+
+### 19.9.5 协程的异常处理流程分析
+在小节协程的创建、启动、线程调度分析中由分析到，协程block代码被编译成了一个SuspendLambda的子类，子类的
+invokeSuspend函数体对应协程block中的运算逻辑，而invokeSuspend函数是由resumeWith函数调用的。如下代码：
+
+ContinuationImpl.kt
+```
+internal abstract class BaseContinuationImpl(
+    public val completion: Continuation<Any?>?
+) : Continuation<Any?>, CoroutineStackFrame, Serializable {
+    public final override fun resumeWith(result: Result<Any?>) {
+        var current = this
+        var param = result
+        while (true) {
+            ...
+            with(current) {
+                val completion = completion!! // fail fast when trying to resume continuation without completion
+                val outcome: Result<Any?> =
+                    try {
+                        // 1 执行了协程 block中的运算逻辑，协程运行了。并通过try-catch代码块捕获
+                        // 运算逻辑中抛出的异常。
+                        val outcome = invokeSuspend(param)
+                        if (outcome === COROUTINE_SUSPENDED) return
+                        Result.success(outcome)
+                    } catch (exception: Throwable) {
+                        // 2 协程运算中所有异常都会在这里被捕获，然后作为一种运算结果
+                        Result.failure(exception)
+                    }
+                releaseIntercepted() // this state machine instance is terminating
+                if (completion is BaseContinuationImpl) {
+                    // unrolling recursion via loop
+                    current = completion
+                    param = outcome
+                } else {
+                    // top-level completion reached -- invoke and return
+                    // 3 调用前文分析的StandaloneCoroutine的实例方法resumeWith（AbstractCoroutine类的方法）
+                    // 该函数结束协程。
+                    completion.resumeWith(outcome)
+                    return
+                }
+            }
+        }
+    }
+    ...
+}
+```
+协程运算过程中所有异常其实都会在第二层包装中被捕获，然后会通过
+AbstractCoroutine.resumeWith(Result.failure(exception))进入到第一层包装中，协程的第一层包装不仅维护协程的
+状态，还处理协程运算中的异常。
+
+AbstractCoroutine.kt
+```K
+public abstract class AbstractCoroutine<in T>(
+    parentContext: CoroutineContext,
+    initParentJob: Boolean,
+    active: Boolean
+) : JobSupport(active), Job, Continuation<T>, CoroutineScope {
+    ...
+    public final override fun resumeWith(result: Result<T>) {
+        val state = makeCompletingOnce(result.toState())
+        if (state === COMPLETING_WAITING_CHILDREN) return
+        afterResume(state)
+    }
+    ...
+}
+```
+
+```K
+public open class JobSupport constructor(active: Boolean) : Job, ChildJob, ParentJob {
+    ...
+    private fun finalizeFinishingState(state: Finishing, proposedUpdate: Any?): Any? {
+        ...
+        // 1 proposedException 即前面未捕获的异常
+        val proposedException = (proposedUpdate as? CompletedExceptionally)?.cause
+        val wasCancelling: Boolean
+        val finalException = synchronized(state) {
+            wasCancelling = state.isCancelling
+            val exceptions = state.sealLocked(proposedException)
+            val finalCause = getFinalRootCause(state, exceptions)
+            if (finalCause != null) addSuppressedExceptions(finalCause, exceptions)
+            finalCause
+        }
+        val finalState = when {
+            // was not cancelled (no exception) -> use proposed update value
+            finalException == null -> proposedUpdate
+            // small optimization when we can used proposeUpdate object as is on cancellation
+            finalException === proposedException -> proposedUpdate
+            // cancelled job final state
+            else -> CompletedExceptionally(finalException)
+        }
+        // Now handle the final exception
+        if (finalException != null) {
+        // 2 如果 finalException 不是 CancellationException，而且父协程且不为 SupervisorJob 和 
+        // supervisorScope，cancelParent(finalException) 都返回 true
+        // 也就是说一般情况下出现异常，会传递到最根部的协程，由最顶端的协程去处理
+            val handled = cancelParent(finalException) || handleJobException(finalException)
+            if (handled) (finalState as CompletedExceptionally).makeHandled()
+        }
+        // Process state updates for the final state before the state of the Job is actually set to the final state
+        // to avoid races where outside observer may see the job in the final state, yet exception is not handled yet.
+        if (!wasCancelling) onCancelling(finalException)
+        onCompletionInternal(finalState)
+        // Then CAS to completed state -> it must succeed
+        val casSuccess = _state.compareAndSet(state, finalState.boxIncomplete())
+        assert { casSuccess }
+        // And process all post-completion actions
+        completeStateFinalization(state, finalState)
+        return finalState
+    }
+    
+    private fun notifyCancelling(list: NodeList, cause: Throwable) {
+        // first cancel our own children
+        onCancelling(cause)
+        // 1 取消子协程，异常传播到子协程
+        notifyHandlers<JobCancellingNode>(list, cause)
+        // then cancel parent
+        // 2 可能取消父协程，异常可能传播到父协程。
+        cancelParent(cause) // tentative cancellation -- does not matter if there is no parent
+    }
+    
+    private fun cancelParent(cause: Throwable): Boolean {
+        // Is scoped coroutine -- don't propagate, will be rethrown
+        // 1 如果是协同作用域则异常会取消父协程。
+        if (isScopedCoroutine) return true
+
+        /* CancellationException is considered "normal" and parent usually is not cancelled when child produces it.
+         * This allow parent to cancel its children (normally) without being cancelled itself, unless
+         * child crashes and produce some other exception during its completion.
+         */
+         // 2 如果异常时CancellationException，不会取消父协程。
+        val isCancellation = cause is CancellationException
+        val parent = parentHandle
+        // No parent -- ignore CE, report other exceptions.
+        if (parent === null || parent === NonDisposableHandle) {
+            return isCancellation
+        }
+
+        // Notify parent but don't forget to check cancellation
+        // 3 parentHandle?.childCancelled(cause) 最后会通过调用 parentJob.childCancelled(cause) 
+        // 取消父协程
+        return parent.childCancelled(cause) || isCancellation
+    }
+    ...
+    internal fun makeCompletingOnce(proposedUpdate: Any?): Any? {
+        loopOnState { state ->
+        // 1 调用tryMakeCompleting函数
+            val finalState = tryMakeCompleting(state, proposedUpdate)
+            when {
+                finalState === COMPLETING_ALREADY ->
+                    throw IllegalStateException(
+                        "Job $this is already complete or completing, " +
+                            "but is being completed with $proposedUpdate", proposedUpdate.exceptionOrNull
+                    )
+                finalState === COMPLETING_RETRY -> return@loopOnState
+                else -> return finalState // COMPLETING_WAITING_CHILDREN or final state
+            }
+        }
+    }
+    
+    private fun tryMakeCompleting(state: Any?, proposedUpdate: Any?): Any? {
+        if (state !is Incomplete)
+            return COMPLETING_ALREADY
+        ...
+        if ((state is Empty || state is JobNode) && state !is ChildHandleNode && proposedUpdate !is CompletedExceptionally) {
+            if (tryFinalizeSimpleState(state, proposedUpdate)) {
+                // Completed successfully on fast path -- return updated state
+                return proposedUpdate
+            }
+            return COMPLETING_RETRY
+        }
+        // The separate slow-path function to simplify profiling
+        // 1 调用tryMakeCompletingSlowPath函数。
+        return tryMakeCompletingSlowPath(state, proposedUpdate)
+    }
+    
+    private fun tryMakeCompletingSlowPath(state: Incomplete, proposedUpdate: Any?): Any? {
+        val list = getOrPromoteCancellingList(state) ?: return COMPLETING_RETRY
+        val finishing = state as? Finishing ?: Finishing(list, false, null)
+        var notifyRootCause: Throwable? = null
+        synchronized(finishing) {
+            if (finishing.isCompleting) return COMPLETING_ALREADY
+            finishing.isCompleting = true
+            if (finishing !== state) {
+                if (!_state.compareAndSet(state, finishing)) return COMPLETING_RETRY
+            }
+            assert { !finishing.isSealed } // cannot be sealed
+            val wasCancelling = finishing.isCancelling
+            (proposedUpdate as? CompletedExceptionally)?.let { finishing.addExceptionLocked(it.cause) }
+            // 1 该情景下，notifyRootCause 的值为 exception
+            notifyRootCause = finishing.rootCause.takeIf { !wasCancelling }
+        }
+        // 2 调用函数notifyCancelling
+        notifyRootCause?.let { notifyCancelling(list, it) }
+        // now wait for children
+        val child = firstChild(state)
+        if (child != null && tryWaitForChild(finishing, child, proposedUpdate))
+            return COMPLETING_WAITING_CHILDREN
+        // otherwise -- we have not children left (all were already cancelled?)
+        // 3 调用函数finalizeFinishingState
+        return finalizeFinishingState(finishing, proposedUpdate)
+    }
+    
+    protected open fun handleJobException(exception: Throwable): Boolean = false
+    ...
+}
+```
+所以出现异常时，首先会取消自身协程和所有子协程，然后可能会取消父协程。而有些情况下并不会取消父协程，一是当异常
+属于 CancellationException 时，二是使用SupervisorJob和supervisorScope时， 子协程出现未捕获异常时
+也不会影响父协程，它们的原理是重写 childCancelled() 为
+override fun childCancelled(cause: Throwable): Boolean = false。
+
+launch式协程和async式协程都会自动向上传播异常，取消父协程。
+
+协同作用域的子协程出现的异常，不仅会取消父协程，一步步取消到最根部的协程，而且最后还由最根部的协程（Root Coroutine）
+处理协程。
+
+对于launch函数创建的协程第一次包装是StandaloneCoroutine，对于async函数创建的协程第一层包装是AbstractCoroutine
+Builders.common.kt
+```K
+private open class StandaloneCoroutine(
+    parentContext: CoroutineContext,
+    active: Boolean
+) : AbstractCoroutine<Unit>(parentContext, initParentJob = true, active = active) {
+    override fun handleJobException(exception: Throwable): Boolean {
+        // 1 调用handleCoroutineException
+        handleCoroutineException(context, exception)
+        return true
+    }
+}
+```
+CoroutineExceptionHandler.kt
+```K
+internal actual val platformExceptionHandlers: Collection<CoroutineExceptionHandler> = ServiceLoader.load(
+    CoroutineExceptionHandler::class.java,
+    CoroutineExceptionHandler::class.java.classLoader
+).iterator().asSequence().toList()
+
+internal actual fun propagateExceptionFinalResort(exception: Throwable) {
+    // use the thread's handler
+    val currentThread = Thread.currentThread()
+    currentThread.uncaughtExceptionHandler.uncaughtException(currentThread, exception)
+}
+
+public fun handleCoroutineException(context: CoroutineContext, exception: Throwable) {
+    try {
+       // 1 调用CoroutineExceptionHandler处理异常。
+        context[CoroutineExceptionHandler]?.let {
+            it.handleException(context, exception)
+            return
+        }
+    } catch (t: Throwable) {
+        handleUncaughtCoroutineException(context, handlerException(exception, t))
+        return
+    }
+    // If a handler is not present in the context or an exception was thrown, fallback to the global handler
+    // 2 如果没有CoroutineExceptionHandler，
+    handleUncaughtCoroutineException(context, exception)
+}
+
+internal fun handleUncaughtCoroutineException(context: CoroutineContext, exception: Throwable) {
+    // use additional extension handlers
+    for (handler in platformExceptionHandlers) {
+        try {
+            handler.handleException(context, exception)
+        } catch (_: ExceptionSuccessfullyProcessed) {
+            return
+        } catch (t: Throwable) {
+            propagateExceptionFinalResort(handlerException(exception, t))
+        }
+    }
+
+    try {
+        exception.addSuppressed(DiagnosticCoroutineContextException(context))
+    } catch (e: Throwable) {
+        // addSuppressed is never user-defined and cannot normally throw with the only exception being OOM
+        // we do ignore that just in case to definitely deliver the exception
+    }
+    // 触发线程的未捕获的异常
+    propagateExceptionFinalResort(exception)
+}
+```
+launch创建的协程出现的异常只是打印异常堆栈信息，如果在 Android 中还会调用uncaughtExceptionPreHandler处理异常。
+但是如果使用了 CoroutineExceptionHandler 的话，使用自定义的 CoroutineExceptionHandler 处理异常。
+
+而async创建的协程（root协程）第一层包装是AbstractCoroutine，并没有重写handleJobException函数，使得，
+不会打印异常的堆栈信息，也不会通过CoroutineExceptionHandler处理。但是可以通过返回的Deferred调用await函数抛出
+异常，然后用try-catch代码块处理异常。
+
+
+### 19.9.6 小结
+当抛出CancellationException或者调用cancel函数只会取消自身协程和子协程，不会取消父协程，也不会
+打印异常信息。
+
+抛出非CancellationException时会取消自身协程和子协程，也会取消父协程，一直取消root协程，异常
+也由root协程处理。
+
+如果使用了supervisorScope或者SupervisorJob，抛出非CancellationException时会取消自身协程
+和子协程，但是不会取消父协程，不会取消其他子协程，异常由自身协程处理。
+
+launch创建的协程出现的异常只是打印异常堆栈信息，如果在 Android 中还会调用uncaughtExceptionPreHandler处理异常。
+但是如果使用了 CoroutineExceptionHandler 的话，使用自定义的 CoroutineExceptionHandler 处理异常。
+
+而async创建的协程（root协程）第一层包装是AbstractCoroutine，并没有重写handleJobException函数，使得，
+不会打印异常的堆栈信息，也不会通过CoroutineExceptionHandler处理。但是可以通过返回的Deferred调用await函数抛出
+异常，然后用try-catch代码块处理异常。
+
 
 
 

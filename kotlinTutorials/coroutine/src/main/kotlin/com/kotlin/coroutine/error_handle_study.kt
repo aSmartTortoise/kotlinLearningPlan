@@ -4,46 +4,127 @@ import kotlinx.coroutines.*
 import java.lang.ArithmeticException
 import java.lang.RuntimeException
 
-/**
- *  19 异常的处理
- *      https://www.kotlincn.net/docs/reference/coroutines/exception-handling.html
- *      被取消的协程会在挂起点抛出CancellationException并且会被协程的机制忽略。
- *  19.1 异常的传播
- *   https://juejin.cn/post/6935472332735512606
- *      如果要在协程完成之前重试该操作或尝试其他操作，使用try-catch。通过在协程中捕获异常（try-catch），该异常不会在Job
- *  层次结构中传播，也不会利用结构化并发的取消功能。而CoroutineExceptionHandler是处理协程完成后发生的逻辑。绝大多数，我
- *  们使用CoroutineExceptionHandler。
- *  19.2 coroutineScope函数 异常处理特性
- *  coroutineScope函数包裹的子协程发生的异常，该异常可以被重新抛出，并在Job层次结构中进行传播。而
- *  supervisorScope包裹的协程，会创建一个新的独立作用域，并将SupervisorJob作为其Job，该异常不会
- *  在Job层次结构中传播，该协程属于顶级协程。
- *  19.3 取消与异常
- *      协程内部通过CancellationException来取消。当调用job.cancel的时候，协程会被终止，但是它的
- *  父协程不会取消。
- *
- *
- **/
-
 fun main() {
 //    coroutineStudy01Exception()
-//    coroutineStudy02Exception()
-//    coroutineStudy03Exception()
-//    coroutineStudy04ExceptionHandler()
-//    coroutineStudy05ExceptionHandler()
-//    coroutineStudy06ExceptionHandler()
-//    coroutineStudy07ExceptionAsync()
-//    coroutineStudy08ExceptionAsync()
-//    coroutineStudy09ExceptionAsync()
-//    coroutineStudy10ExceptionCoroutineScope()
+//    coroutineExceptionHandler12()
+
+//    globalScopeException()
+//    coroutineScopeException()
+//    supervisorScopeException()
+
+    // launch启动的协程中出现的异常，处理这样的异常
+//    launch_coroutine_exception()
+//    launch_coroutine_exception_propagate_root_coroutine_01()
+//      launch_coroutine_exception_propagate_root_coroutine_02()
+//      launch_coroutine_exception_propagate_root_coroutine_03()
+//      supervisor_job_launch_coroutine_exception_not_propagate_root_coroutine_04()
+
+    // async启动的协程中出现的异常，处理这样的异常
+//    async_exception_deferred_01()
+//    async_exception_deferred_02()
+//    async_exception_deferred_05()
+//    async_exception_deferred_06()
+//    async_exception_deferred_03()
+//    async_exception_deferred_04()
+//    async_exception_deferred_07()
+//    async_exception_deferred_08()
+//    async_exception_deferred_09()
+    async_exception_deferred_10()
+
+//    lauch_coroutine_exception_in_coroutine_scope_01()
+//    lauch_coroutine_exception_in_coroutine_scope_02()
 //    coroutineStudy11ExceptionSupervisorScope()
-    coroutineStudyExceptionSupervisorScope()
+//    launch_coroutine_exception_in_supervisor_scope_01()
+//    launch_coroutine_exception_in_supervisor_scope_02()
+//    CoroutineScope(Job())
+
+//    test()
+}
+
+fun test()= runBlocking {
+    val handler = CoroutineExceptionHandler { coroutineContext, exception ->
+        println("CoroutineExceptionHandler got $exception  coroutineContext $coroutineContext")
+    }
+    val job = GlobalScope.launch(handler) {
+        println("1")
+        delay(1000)
+        coroutineScope {
+            println("2")
+            val job2 = launch(handler) {
+                throwErrorTest()
+            }
+            println("3")
+            job2.join()
+            println("4")
+        }
+    }
+    job.join()
+}
+fun throwErrorTest(){
+    throw Exception("error test")
+}
+
+
+
+/**
+ *  c2和c3都是协程c1的子协程，c2和c3协程中出现的异常不会影响到c1，且c2和c3互相不影响。
+ */
+private fun supervisorScopeException() {
+    GlobalScope.launch {//协程c1
+        supervisorScope {
+            launch {//协程c2
+                println("协程c2")
+                throw RuntimeException()
+            }
+            launch {//协程c3
+                println("协程c3")
+            }
+        }
+        delay(100)
+        println("协程c1")
+    }
+    Thread.sleep(1000)
+    println("main thread end.")
 }
 
 /**
- * supervisorScope函数包裹的由launch创建的协程是顶级协程，该协程中发生的异常，可以在
- * CoroutineExceptinHandler中被捕获
+ *  c2、c3是c1的子协程，c2或c3协程中出现的异常会导致c1取消。
  */
-private fun coroutineStudyExceptionSupervisorScope() {
+private fun coroutineScopeException() {
+    GlobalScope.launch { // 协程c1
+        coroutineScope {
+            launch { // 协程c2
+                println("协程c2")
+                throw RuntimeException()
+            }
+            launch { // 协程c3
+                println("协程c3")
+            }
+        }
+        delay(100)
+        println("协程c1")
+    }
+    Thread.sleep(1000)
+    println("main thread end.")
+}
+
+/**
+ *  c1和c2相互独立。
+ */
+private fun globalScopeException() {
+    GlobalScope.launch {//协程 c1
+        GlobalScope.launch { // 协程c2
+            println("协程 c2")
+            throw RuntimeException()
+        }
+        delay(100)
+        println("协程 c1")
+    }
+    Thread.sleep(1000L)
+    println("main thread end.")
+}
+
+private fun launch_coroutine_exception_in_supervisor_scope_02() {
     val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
         println("handle $throwable in handler.")
     }
@@ -51,7 +132,7 @@ private fun coroutineStudyExceptionSupervisorScope() {
     val topLevelScope = CoroutineScope(Job())
     topLevelScope.launch {
         val job1 = launch {
-            println("starting coroutin 1.")
+            println("starting coroutine 1.")
         }
 
         supervisorScope {
@@ -64,9 +145,43 @@ private fun coroutineStudyExceptionSupervisorScope() {
                 println("starting coroutine 3.")
             }
         }
+
+        delay(100)
+        println("parent job after delay 100")
     }
 
-    Thread.sleep(100L)
+    Thread.sleep(300L)
+    println("main thread end.")
+}
+
+/**
+ * supervisorScope函数包裹的由launch创建的协程是顶级协程，该协程中发生的异常，可以在
+ * CoroutineExceptinHandler中被捕获
+ */
+private fun launch_coroutine_exception_in_supervisor_scope_01() {
+    val topLevelScope = CoroutineScope(Job())
+    topLevelScope.launch {
+        val job1 = launch {
+            println("starting coroutin 1.")
+        }
+
+        supervisorScope {
+            val job2 = launch {
+                println("starting coroutine 2.")
+                throw RuntimeException("RuntimeException in coroutine 2.")
+            }
+
+            val job3 = launch {
+                println("starting coroutine 3.")
+            }
+        }
+
+        delay(100)
+        println("parent job after delay 100")
+    }
+
+    Thread.sleep(300L)
+    println("main thread end.")
 }
 
 /**
@@ -95,13 +210,31 @@ private fun coroutineStudy11ExceptionSupervisorScope() {
     Thread.sleep(100L)
 }
 
+private fun lauch_coroutine_exception_in_coroutine_scope_02() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope(SupervisorJob() + exceptionHandler)
+    topLevelScope.launch {
+        coroutineScope {
+            launch {
+                throw RuntimeException("RuntimeException in child launch coroutine.")
+            }
+        }
+        delay(100)
+        println("parent job after delay 100")
+
+    }
+    Thread.sleep(300L)
+}
+
 /**
  * 有launch构建的子协程，被coroutineScope函数所包裹，并且在子协程中发生了异常，这样异常不会传播
  * 到Job层次结构中，如果只对该子协程使用try-catch语句是可以捕获到异常的。
  * coroutineScope函数主要用在suspend函数中已实现“并行分解”，这些suspend函数将重新抛出其失败协程
  * 的异常，我们可以使用try-catch捕获异常。
  */
-private fun coroutineStudy10ExceptionCoroutineScope() {
+private fun lauch_coroutine_exception_in_coroutine_scope_01() {
     val topLevelScope = CoroutineScope(SupervisorJob())
     topLevelScope.launch {
         try {
@@ -111,17 +244,106 @@ private fun coroutineStudy10ExceptionCoroutineScope() {
                 }
             }
         } catch (e: Exception) {
-            println("handle $e in try-catch.")
+            println("try-catch e:$e")
+        }
+        delay(100)
+        println("parent job after delay 100")
+
+    }
+    Thread.sleep(300L)
+}
+
+private fun async_exception_deferred_10() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope(SupervisorJob())
+    val deferred = topLevelScope.async {
+        launch {
+            println("launch")
+            throw RuntimeException("RuntimeException in async coroutine.")
         }
     }
+
+    topLevelScope.launch {
+        deferred.await()
+    }
+
     Thread.sleep(100L)
+    println("main thread end.")
+}
+
+private fun async_exception_deferred_09() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope(SupervisorJob() + exceptionHandler)
+    topLevelScope.async {
+        val deferred = async {
+            println("async")
+            throw RuntimeException("RuntimeException in async coroutine.")
+        }
+
+        try {
+            deferred.await()
+        } catch (e: Exception) {
+            println("try-catch e:$e")
+        }
+    }
+
+    Thread.sleep(100L)
+    println("main thread end.")
+}
+
+private fun async_exception_deferred_08() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope(SupervisorJob() + exceptionHandler)
+    topLevelScope.launch {
+        val deferred = async {
+            println("async")
+            throw RuntimeException("RuntimeException in async coroutine.")
+        }
+
+        try {
+            deferred.await()
+        } catch (e: Exception) {
+            println("try-catch e:$e")
+        }
+    }
+
+    Thread.sleep(100L)
+    println("main thread end.")
 }
 
 /**
- *  async构建的非顶级协程中发生了异常，该异常会传播到Job的层次结构中，并有CoroutineExceptionHandler捕获，甚至传递该
- *  线程的未捕获的异常程序，即使不调用await函数。
+ *  async构建的子协程中出现了异常，异常会传播到root协程中，通过try-catch代码块并不能阻止线程发生未捕获的异常，需要通过
+ *  root协程的CoroutineExceptionHandler处理。
  */
-private fun coroutineStudy09ExceptionAsync() {
+private fun async_exception_deferred_07() {
+    val topLevelScope = CoroutineScope(SupervisorJob())
+    topLevelScope.launch {
+        val deferred = async {
+            println("async")
+            throw RuntimeException("RuntimeException in async coroutine.")
+        }
+
+        try {
+            deferred.await()
+        } catch (e: Exception) {
+            println("try-catch e:$e")
+        }
+    }
+
+    Thread.sleep(100L)
+    println("main thread end.")
+}
+
+/**
+ *  async构建的子协程中发生了异常，该异常会委托给root协程处理，可以通过CoroutineExceptionHandler捕获。
+ */
+private fun async_exception_deferred_04() {
     val exceptionHandler = CoroutineExceptionHandler { context, throwable ->
         println("handle $throwable in handler")
     }
@@ -135,104 +357,149 @@ private fun coroutineStudy09ExceptionAsync() {
 }
 
 /**
- * async启动的顶层协程中发生了异常，在当Deferred调用await函数的时候是会抛出异常的。
+ *  通过async构建的子协程，出现的异常会委托给root协程处理。
+ *  打印异常。
  */
-private fun coroutineStudy08ExceptionAsync() {
+private fun async_exception_deferred_03() {
     val topLevelScope = CoroutineScope(SupervisorJob())
-    val deferred = topLevelScope.async {
-        throw RuntimeException("RuntimeException in async coroutine.")
-    }
     topLevelScope.launch {
-        try {
-            deferred.await()
-        } catch (e: Exception) {
-            println("handle $e in try-catch.")
+        async {
+            println("async")
+            throw RuntimeException("RuntimeException in async coroutine.")
         }
     }
 
     Thread.sleep(100L)
 }
 
+private fun async_exception_deferred_06() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope(SupervisorJob())
+    val deferred = topLevelScope.async {
+        println("async")
+        throw RuntimeException("RuntimeException in async coroutine.")
+    }
+
+    topLevelScope.launch {
+        try {
+            deferred.await()
+        } catch (e: Exception) {
+            println("try-catch e:$e")
+        }
+    }
+
+    Thread.sleep(100L)
+}
+private fun async_exception_deferred_05() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope(SupervisorJob() + exceptionHandler)
+    val deferred = topLevelScope.async {
+        println("async")
+        throw RuntimeException("RuntimeException in async coroutine.")
+    }
+
+    topLevelScope.launch {
+        deferred.await()
+    }
+
+    Thread.sleep(100L)
+}
+
 /**
- * async构建的顶级携程中throw RuntimeException，且不调用await函数，则运行程序，不会抛出异常。
- *  async构建的携程的返回结果是Deferred是一种特殊的Job，有结果的，如果对应的协程中发生异常，会将异常封装在Deferred中，
- *  所以如果不调用await函数是不会抛出异常的。
+*  通过async构建的root协程，出现了异常，该协程将异常反映到返回值Deferred中。通过Deferred#await函数可以重新抛出异常
+ * 会打印异常。需要使用try-catch代码块，包裹await函数调用来捕获异常。
+*
+*/
+private fun async_exception_deferred_02() {
+    val topLevelScope = CoroutineScope(SupervisorJob())
+    val deferred = topLevelScope.async {
+        println("async")
+        throw RuntimeException("RuntimeException in async coroutine.")
+    }
+
+    topLevelScope.launch {
+        deferred.await()
+    }
+
+    Thread.sleep(100L)
+}
+
+/**
+ *  通过async构建的root协程，出现了异常，该协程会将异常反映到返回值Deferred中。
+ *  不会打印异常。
  */
-private fun coroutineStudy07ExceptionAsync() {
+private fun async_exception_deferred_01() {
     val topLevelScope = CoroutineScope(SupervisorJob())
     topLevelScope.async {
+        println("async")
         throw RuntimeException("runTimeException in async coroutine.")
     }
     Thread.sleep(100L)
 }
 
 /**
- *  在构建顶层域CoroutineScope的时候向其构造方法中传入CoroutineExceptionHanlder，并在启动
- *  子协程的构建器中传入同一个CoroutineExceptionHandler的对象。如此在子协程发生异常的时候
- *  CoroutineExceptionHandler可以捕获到异常。
+ *  supervisorJob中，由launch函数构建的子协程中出现了异常，该异常不会传播到父协程中。
  */
-private fun coroutineStudy06ExceptionHandler() {
-    val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        println("$throwable in exceptionHandler.")
+private fun supervisor_job_launch_coroutine_exception_not_propagate_root_coroutine_04() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
     }
+    val topLevelScope = CoroutineScope(Job() )
+    topLevelScope.launch(exceptionHandler) {
+        supervisorScope {
+            launch {
+                println("throw exception.")
+                throw RuntimeException("runtimeException in nest coroutine.")
+            }
+        }
+        delay(200)
+        println("parent job")
+    }
+    Thread.sleep(1000L)
+}
 
-    val topLevelScope = CoroutineScope(Job() + exceptionHandler)
+private fun launch_coroutine_exception_propagate_root_coroutine_03() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope((Job() + exceptionHandler))
+    topLevelScope.launch {
+        launch {
+            println("throw exception.")
+            throw RuntimeException("runtimeException in nest coroutine.")
+        }
+    }
+    Thread.sleep(100L)
+}
+
+/**
+ *  CoroutineExceptionHandler需要设置到root协程的CoroutineContext中才能捕获到子协程中出现的异常。
+ */
+private fun launch_coroutine_exception_propagate_root_coroutine_02() {
+    val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        println("exceptionHandler throwable:$throwable")
+    }
+    val topLevelScope = CoroutineScope((Job()))
     topLevelScope.launch {
         launch(exceptionHandler) {
-            throw RuntimeException("runTimeException in nested coroutine.")
+            println("throw exception.")
+            throw RuntimeException("runtimeException in nest coroutine.")
         }
     }
     Thread.sleep(100L)
 }
 
 /**
- *  给父协程的构建器传入CoroutineExceptionHandler，当子协程出现异常的时候，CoroutineExceptionHandler
- *  可以捕获该异常。
- */
-private fun coroutineStudy05ExceptionHandler() {
-    val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        println("$throwable in exceptionHandler.")
-    }
-
-    val topLevleScope = CoroutineScope(Job())
-    topLevleScope.launch(exceptionHandler) {
-        launch {
-            throw RuntimeException("runTimeException in nested coroutine.")
-        }
-    }
-
-    Thread.sleep(100L)
-}
-
-/**
- *  由于CoroutineExceptionHandler是一个ContextElement，可以在启动子协程时传递给协程构建器。
- *  但是只给子协程设置是没有用的。
- */
-private fun coroutineStudy04ExceptionHandler() {
-    val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        println("$throwable in exceptionHandler")
-    }
-
-    val topLevelScope = CoroutineScope(Job())
-    topLevelScope.launch {
-        launch(coroutineExceptionHandler) {
-            throw RuntimeException("runtimeException in nested coroutine.")
-        }
-    }
-
-    Thread.sleep(100L)
-}
-
-/**
- * 应用程序crash，并且try-catch捕获不了子协程的异常。
- *  CoroutineScope的Job对象以及Coroutines和Child-Coroutines的Job对象形成了父子关系的层次结构，
- *  异常在工作层次结构中传播，进而导致父Job的失败，导致其所有子级的Job的取消。
- *  这样异常有子协程传递给了父协程，且try-catch捕获不了这种异常。
- *  传播的异常可以通过CoroutineExceptionHandler来捕获。如果未设置，则将调用线程的未捕获异常处理程
- *  序，可能会导致退出应用程序。
+ *  try-catch捕获不了子协程的异常。
+ *  在普通Job中，通过launch构建的子协程，产生的异常会传播到root 协程，由root协程处理。如果root协程的上下文中没有
+ *  CoroutineExceptionHandler，则会打印该异常。
  *
  */
-private fun coroutineStudy03Exception() {
+private fun launch_coroutine_exception_propagate_root_coroutine_01() {
     val topLevelScope = CoroutineScope((Job()))
     topLevelScope.launch {
         try {
@@ -246,7 +513,10 @@ private fun coroutineStudy03Exception() {
     Thread.sleep(100L)
 }
 
-private fun coroutineStudy02Exception() {
+/**
+ *  在普通Job中，通过launch启动的协程，通过try-catch代码块捕获异常。
+ */
+private fun launch_coroutine_exception() {
     val topLevelScope = CoroutineScope(Job())
     topLevelScope.launch {
         try {
@@ -258,26 +528,50 @@ private fun coroutineStudy02Exception() {
     Thread.sleep(100L)
 }
 
+private fun coroutineExceptionHandler12() {
+    runBlocking {
+        // handler不会catch async构建的协程中出现的异常，会catch launch构建的协程出现的异常
+        val handler = CoroutineExceptionHandler { context, throwable ->
+            println("coroutine exception handler, throwable:$throwable")
+        }
+        val job = GlobalScope.launch(handler) {
+            throw AssertionError()
+        }
+        val deferred = GlobalScope.async(handler) {
+            throw ArithmeticException()
+        }
+        joinAll(job, deferred)
+        println("runBlocking coroutine.")
+    }
+}
+
 /**
  *  由launch构建的顶级协程中发生的异常，异常将由CoroutineExceptionHandler处理或传播给线程的未捕获的异常程序。
  */
 private fun coroutineStudy01Exception() {
     runBlocking {
         val job = GlobalScope.launch {
-            println("throw exceptin from launch")
+            println("throw exception from launch")
+            delay(100)
             throw IndexOutOfBoundsException()
         }
-        job.join()
+        //try 代码块未能捕获到异常。
+        try {
+            job.join()
+        } catch (e: Exception) {
+            println("launch join e:$e")
+        }
         println("joined failed job")
         val deferred = GlobalScope.async {
-            println("throws exception from aync")
+            println("throws exception from async")
             throw ArithmeticException()
         }
+        // try代码块捕获到了子协程中出现的异常。
         try {
             deferred.await()
-            println("defered wait")
         } catch (e: ArithmeticException) {
-            println("caugth ArithmeticException")
+            println("caught ArithmeticException")
         }
+        println("deferred wait")
     }
 }

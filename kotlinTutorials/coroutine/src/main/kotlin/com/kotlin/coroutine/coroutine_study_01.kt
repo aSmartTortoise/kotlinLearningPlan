@@ -13,7 +13,7 @@ fun main() {
 
 //    suspendFunctionStudy()
 
-    yieldStudy()
+//    yieldStudy()
 }
 
 @OptIn(DelicateCoroutinesApi::class)

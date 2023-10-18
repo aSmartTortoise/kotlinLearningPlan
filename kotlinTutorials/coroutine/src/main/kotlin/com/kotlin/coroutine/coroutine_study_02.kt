@@ -50,6 +50,7 @@ import kotlin.coroutines.CoroutineContext
  */
 class MyContinuationInterceptor : ContinuationInterceptor {
     override val key = ContinuationInterceptor
+
     override fun <T> interceptContinuation(continuation: Continuation<T>) = MyContinuation(continuation)
 }
 class MyContinuation<T>(val continuation: Continuation<T>) : Continuation<T> {
