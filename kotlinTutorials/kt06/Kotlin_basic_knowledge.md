@@ -195,11 +195,16 @@ https://www.kotlincn.net/docs/reference/inline-functions.html
 在Kotlin中，我们只能对具名函数或匿名函数使用正常的、非限定的return返回。这意味着要
 退出一个Lambda表达式，我们必须使用标签，并且在Lambda表达式内部禁止使用裸return，因为Lambada
 表达式不能使包含它的函数返回。
+
 Lambda禁止使用return关键字，但是可以使用限定的返回语法：return@函数名 显示返回一个值，否则
 则隐式返回最后一个表达式的值。
+
 一个不带标签的return语句总是在使用fun关键字声明的函数中返回。
 内联函数中的Lambda表达式可以使用非限定的return语句，返回的是外部那个调用内联函数的函数，而不是
 内联函数本身。这就叫内联函数的Lambda表达式的非局部返回。
+
+内联函数的函数类型，在内联函数调用的时候不希望Lambda表达式中有return全局返回而影响外部函数的执行流程，
+可以用crossInline修饰函数类型。
 ### 16.5.7 公有api内联函数的限制
 当一个函数被public或者protected修饰的时候，它就是一个模块级的公有api，可以在其他模块中调用它。
 这样对于公有api的内联函数来说，当本模块的的api发生变更时导致其他调用这个内联函数的模块
