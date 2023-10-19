@@ -6,25 +6,25 @@ import com.wyj.coroutine.extention.NormalScope
 import kotlinx.coroutines.*
 
 abstract class BaseService : Service() {
-    private val mNormalScope = NormalScope()
+    val mNormalScope = NormalScope()
 
     override fun onDestroy() {
         mNormalScope.cancel()
         super.onDestroy()
     }
 
-    protected fun requestMain(
-        errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-        block: suspend CoroutineScope.() -> Unit
+    protected inline fun requestMain(
+        errorCode: Int = -1, errorMsg: String = "", report: Boolean = false,
+        crossinline block: suspend CoroutineScope.() -> Unit
     ) {
-        mNormalScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+        mNormalScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
             block.invoke(this)
         }
     }
 
-    protected fun requestIO(
+    protected inline fun requestIO(
         errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-        block: suspend CoroutineScope.() -> Unit
+        crossinline block: suspend CoroutineScope.() -> Unit
     ): Job {
         return mNormalScope.launch(
             Dispatchers.IO + GlobalCoroutineExceptionHandler(
@@ -37,9 +37,9 @@ abstract class BaseService : Service() {
         }
     }
 
-    protected fun delayMain(
+    protected inline fun delayMain(
         delayTime: Long, errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-        block: suspend CoroutineScope.() -> Unit
+        crossinline block: suspend CoroutineScope.() -> Unit
     ) {
         mNormalScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
             withContext(Dispatchers.IO) {

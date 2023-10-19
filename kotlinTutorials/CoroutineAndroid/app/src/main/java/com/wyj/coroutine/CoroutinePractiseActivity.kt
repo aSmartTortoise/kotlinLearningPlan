@@ -39,10 +39,10 @@ class CoroutinePractiseActivity : AppCompatActivity() {
             }
         }
 
-//        lifecycleScope.launch {
-//            delay(200L)
-//            Toast.makeText(this@CoroutinePractiseActivity, "lifecycleScope 启动协程", Toast.LENGTH_LONG).show()
-//        }
+        lifecycleScope.launch {
+            delay(200L)
+            Toast.makeText(this@CoroutinePractiseActivity, "lifecycleScope 启动协程", Toast.LENGTH_LONG).show()
+        }
         requestMain {
             Log.d(TAG, "requestMain: wyj thread:${Thread.currentThread().name}")
             delay(200L)
@@ -86,7 +86,7 @@ class CoroutinePractiseActivity : AppCompatActivity() {
             }
         }
 
-        val result = withContext(Dispatchers.IO) {
+        val result = withContext(coroutineContext) {
             delay(200L)
             //网络请求
             "请求结果"

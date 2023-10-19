@@ -13,10 +13,10 @@ public fun NormalScope(): CoroutineScope = CoroutineScope(Dispatchers.Main.immed
 inline fun AppCompatActivity.requestMain(
     errorCode: Int = -1,
     errorMsg: String = "",
-    response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ) {
-    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         block.invoke(this)
     }
 }
@@ -24,16 +24,11 @@ inline fun AppCompatActivity.requestMain(
 inline fun AppCompatActivity.requestIO(
     errorCode: Int = -1,
     errorMsg: String = "",
-    response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ): Job {
     return lifecycleScope.launch(
-        Dispatchers.IO + GlobalCoroutineExceptionHandler(
-            errorCode,
-            errorMsg,
-            response
-        )
-    ) {
+        Dispatchers.IO + GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         block.invoke(this)
     }
 }
@@ -42,11 +37,11 @@ inline fun AppCompatActivity.delayMain(
     delayTime: Long,
     errorCode: Int = -1,
     errorMsg: String = "",
-    response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ) {
-    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
-        withContext(Dispatchers.IO) {
+    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
+        withContext(coroutineContext) {
             delay(delayTime)
         }
         block.invoke(this)
@@ -54,28 +49,28 @@ inline fun AppCompatActivity.delayMain(
 }
 
 inline fun Fragment.requestMain(
-    errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    errorCode: Int = -1, errorMsg: String = "", report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ) {
-    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         block.invoke(this)
     }
 }
 
 inline fun Fragment.requestIO(
-    errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    errorCode: Int = -1, errorMsg: String = "", report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ): Job {
-    return lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+    return lifecycleScope.launch(Dispatchers.IO + GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         block.invoke(this)
     }
 }
 
 inline fun Fragment.delayMain(
-    delayTime: Long, errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    delayTime: Long, errorCode: Int = -1, errorMsg: String = "", report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ) {
-    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+    lifecycleScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         withContext(Dispatchers.IO) {
             delay(delayTime)
         }
@@ -84,28 +79,28 @@ inline fun Fragment.delayMain(
 }
 
 inline fun ViewModel.requestMain(
-    errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    errorCode: Int = -1, errorMsg: String = "", report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ) {
-    viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+    viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         block.invoke(this)
     }
 }
 
 inline fun ViewModel.requestIO(
-    errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    errorCode: Int = -1, errorMsg: String = "", report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ): Job {
-    return viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+    return viewModelScope.launch(Dispatchers.IO + GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         block.invoke(this)
     }
 }
 
 inline fun ViewModel.delayMain(
-    delayTime: Long, errorCode: Int = -1, errorMsg: String = "", response: Boolean = false,
-    noinline block: suspend CoroutineScope.() -> Unit
+    delayTime: Long, errorCode: Int = -1, errorMsg: String = "", report: Boolean = false,
+    crossinline block: suspend CoroutineScope.() -> Unit
 ) {
-    viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, response)) {
+    viewModelScope.launch(GlobalCoroutineExceptionHandler(errorCode, errorMsg, report)) {
         withContext(Dispatchers.IO) {
             delay(delayTime)
         }
