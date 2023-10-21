@@ -3,6 +3,8 @@ package com.wyj.coroutine.network
 import android.util.Log
 import com.wyj.coroutine.BuildConfig
 import com.wyj.coroutine.MyApplication
+import com.wyj.coroutine.adapter.ApiResultCallAdapterFactory
+import com.wyj.coroutine.network.interceptor.BusinessErrorInterceptor
 import com.wyj.coroutine.network.interceptor.CookieInterceptor
 import com.wyj.coroutine.network.interceptor.HeaderInterceptor
 import okhttp3.Cache
@@ -50,13 +52,14 @@ class HttpManager private constructor() {
             .addInterceptor(loggingInterceptor)
             .addInterceptor(HeaderInterceptor())
             .addInterceptor(CookieInterceptor())
+            .addInterceptor(BusinessErrorInterceptor())
             .cache(cache)
             .build()
         return Retrofit.Builder()
             .client(okHttpClient)
             .baseUrl("https://www.wanandroid.com")
-            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
+            .addCallAdapterFactory(ApiResultCallAdapterFactory())
             .build().run {
                 create(ApiInterface::class.java)
             }

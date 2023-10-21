@@ -49,4 +49,14 @@
         app:layout_constraintLeft_toRightOf="@id/btn_exception_handler"
         app:layout_constraintTop_toBottomOf="@id/btn" />
 
+    <Button
+        android:id="@+id/btn_to_login"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:text="登录"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_exception_handler" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

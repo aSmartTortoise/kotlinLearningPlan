@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import androidx.lifecycle.ViewModelProvider
+import com.wyj.coroutine.mvvm.login.LoginViewModel
 import kotlinx.coroutines.*
 import java.lang.NullPointerException
 import kotlin.coroutines.coroutineContext
@@ -114,6 +116,14 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.btn_coroutine_practise).setOnClickListener {
             coroutinePractise()
+        }
+        val loginViewModel = ViewModelProvider(this).get(LoginViewModel::class.java)
+        findViewById<View>(R.id.btn_to_login).setOnClickListener {
+            /**
+             *  账号:13163268087 密码：123456
+             */
+//           loginViewModel.login("13163268087", "123456")
+           loginViewModel.login2("13163268087", "123456")
         }
 
     }
