@@ -122,8 +122,7 @@ class MainActivity : AppCompatActivity() {
             /**
              *  账号:手机号码 密码：123456
              */
-//           loginViewModel.login("13163268087", "123456")
-           loginViewModel.login2("13163268087", "123456")
+           loginViewModel.login2("131087", "123456")
         }
 
     }
