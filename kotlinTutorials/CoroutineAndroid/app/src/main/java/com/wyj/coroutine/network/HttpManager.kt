@@ -12,25 +12,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.converter.scalars.ScalarsConverterFactory
 import java.io.File
 
-class HttpManager private constructor() {
-    companion object {
-        @Volatile
-        private var instance: HttpManager? = null
-        fun getInstance(): HttpManager {
-            if (instance == null) {
-                synchronized(this) {
-                    if (instance == null) {
-                        instance = HttpManager()
-                    }
-                }
-            }
-            return instance!!
-        }
-    }
-
+object HttpManager {
     val service: ApiInterface by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         build()
     }
@@ -64,8 +48,4 @@ class HttpManager private constructor() {
                 create(ApiInterface::class.java)
             }
     }
-
-
-
-
 }

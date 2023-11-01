@@ -18,29 +18,6 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 class LoginModel() {
-
-    suspend fun loginCoroutine(account: String, pwd: String) = suspendCancellableCoroutine { cont ->
-        login(account, pwd, object : Callback<User> {
-            override fun onSuccess(value: User) {
-                cont.resume(value)
-            }
-
-            override fun onError(t: Throwable) {
-                cont.resumeWithException(t)
-            }
-        })
-    }
-
-    private fun login(account: String, pwd: String, callback: Callback<User>) {
-        try {
-            val responseBody = HttpManager.getInstance().service.loginNotSuspend(account, pwd)
-            println("xxx")
-        } catch (e: Exception) {
-            callback.onError(e)
-        }
-    }
-
-
     suspend fun login (
         account: String,
         pwd: String,
@@ -50,7 +27,7 @@ class LoginModel() {
     ) {
         launchRequest({
             Log.d("LoginModel", "login: login")
-            HttpManager.getInstance().service.login(account, pwd)
+            HttpManager.service.login(account, pwd)
         }, onSuccess, onError, onComplete)
     }
 

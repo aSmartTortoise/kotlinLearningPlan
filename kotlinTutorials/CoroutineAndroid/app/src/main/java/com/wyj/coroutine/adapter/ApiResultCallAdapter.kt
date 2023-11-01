@@ -20,10 +20,7 @@ class ApiResultCallAdapterFactory : CallAdapter.Factory() {
     ): CallAdapter<*, *>? {
         /*凡是检测不通过的，直接抛异常，提示使用者返回值类型格式不对
         因为ApiResultCallAdapterFactory是使用者显式设置使用的*/
-
-
         //以下是检查是否是 Call<ApiResult<T>> 类型的returnType
-
         //检查returnType是否是Call<T>类型的
         check(getRawType(returnType) == Call::class.java) { "$returnType must be retrofit2.Call." }
         check(returnType is ParameterizedType) { "$returnType must be parameterized. Raw types are not supported" }
@@ -37,8 +34,6 @@ class ApiResultCallAdapterFactory : CallAdapter.Factory() {
         val dataType = getParameterUpperBound(0, apiResultType)
 
         return ApiResultCallAdapter<Any>(dataType)
-
-
     }
 
 }
@@ -60,7 +55,7 @@ class ApiResultCall<T>(private val delegate: Call<T>) : Call<ApiResult<T>> {
      * 在失败的时候返回的是ApiResult.Failure对象，这样外面在调用suspend方法的时候就不会抛异常，一定会返回ApiResult.Success 或 ApiResult.Failure
      */
     override fun enqueue(callback: Callback<ApiResult<T>>) {
-        //delegate 是用来做实际的网络请求的Call<T>对象，网络请求的成功失败会回调不同的方法
+        //delegate 是用来做实际的网络请求的Call<T>对象，为OkHttpCall，网络请求的成功失败会回调不同的方法
         delegate.enqueue(object : Callback<T> {
 
             /**
@@ -91,7 +86,6 @@ class ApiResultCall<T>(private val delegate: Call<T>) : Call<ApiResult<T>> {
 
             /**
              * 在网络请求中发生了异常，会回调该方法
-             *
              * 对于网络请求成功，但是业务失败的情况，我们也会在对应的Interceptor中抛出异常，这种情况也会回调该方法
              */
             override fun onFailure(call: Call<T>, t: Throwable) {

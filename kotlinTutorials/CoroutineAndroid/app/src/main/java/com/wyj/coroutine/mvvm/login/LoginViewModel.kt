@@ -41,7 +41,7 @@ class LoginViewModel() : ViewModel() {
 
     fun login2(account: String, pwd: String) {
         viewModelScope.launch {
-            when (val userApiResult = HttpManager.getInstance().service.login2(account, pwd)) {
+            when (val userApiResult = HttpManager.service.login2(account, pwd)) {
                 is ApiResult.Success -> {
                     val user = userApiResult.data.data
                     Log.d(TAG, "login2: name: ${user.username}")
@@ -56,6 +56,5 @@ class LoginViewModel() : ViewModel() {
             }
 
         }
-        Log.d(TAG, "login: wyj ")
     }
 }

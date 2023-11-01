@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity() {
         val loginViewModel = ViewModelProvider(this).get(LoginViewModel::class.java)
         findViewById<View>(R.id.btn_to_login).setOnClickListener {
             /**
-             *  账号:13163268087 密码：123456
+             *  账号:手机号码 密码：123456
              */
 //           loginViewModel.login("13163268087", "123456")
            loginViewModel.login2("13163268087", "123456")

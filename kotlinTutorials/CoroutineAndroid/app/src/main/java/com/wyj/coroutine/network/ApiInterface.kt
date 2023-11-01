@@ -30,10 +30,4 @@ interface ApiInterface {
         @Field("password") password: String
     ): ApiResult<BaseResponse<User>>
 
-    @FormUrlEncoded
-    @POST("/user/login")
-    fun loginNotSuspend(
-        @Field("username") username: String,
-        @Field("password") password: String
-    ): ResponseBody
 }

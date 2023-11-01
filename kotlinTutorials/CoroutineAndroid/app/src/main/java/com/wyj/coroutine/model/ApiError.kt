@@ -14,4 +14,4 @@ object ApiError {
     val unknownException = Error(-3,"unknown exception")
 }
 
-data class Error(val errorCode:Int,val errorMsg:String)
+data class Error(val errorCode: Int, val errorMsg: String)
