@@ -214,3 +214,18 @@ Lambda禁止使用return关键字，但是可以使用限定的返回语法：re
 @PublishedApi标注，这允许在公有api的内联函数的函数体内部使用该api。当一个internal修饰的
 内联函数被标记为@PublishedApi时，它会像公有函数一样检测其函数体。
 
+# 17 相等性
+## 参考文章
+[相等性](https://legacy.kotlincn.net/docs/reference/equality.html)
+
+Kotlin中有两种类型的相等性：结构相等；引用相等。
+
+## 17.1 结构相等
+结构相等由 ==(以及其否定形式!=)来判断。按照惯例像 a==b这样的表达式会翻译成
+a?.equals(b) ?: (b===null)
+
+也就是如果a不等于null，则调用equals(Any?)函数，否则检测b引用是否与null相等。
+# 17.2 引用相等
+引用相等由 ===(以及其否定形式!==)来判断。a===b，当且仅当a和b引用同一个对象返回true，当
+基本数据类型比较引用相等是比较的值。
+
