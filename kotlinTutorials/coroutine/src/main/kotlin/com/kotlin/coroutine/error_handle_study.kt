@@ -36,7 +36,6 @@ fun main() {
 //    coroutineStudy11ExceptionSupervisorScope()
 //    launch_coroutine_exception_in_supervisor_scope_01()
 //    launch_coroutine_exception_in_supervisor_scope_02()
-//    CoroutineScope(Job())
 
 //    test()
 }
@@ -51,6 +50,7 @@ fun test()= runBlocking {
         coroutineScope {
             println("2")
             val job2 = launch(handler) {
+                println("throw error test.")
                 throwErrorTest()
             }
             println("3")
@@ -263,6 +263,8 @@ private fun async_exception_deferred_10() {
             println("launch")
             throw RuntimeException("RuntimeException in async coroutine.")
         }
+        delay(5)
+        println("after delay 5.")
     }
 
     topLevelScope.launch {
@@ -441,9 +443,6 @@ private fun async_exception_deferred_01() {
     Thread.sleep(100L)
 }
 
-/**
- *  supervisorJob中，由launch函数构建的子协程中出现了异常，该异常不会传播到父协程中。
- */
 private fun supervisor_job_launch_coroutine_exception_not_propagate_root_coroutine_04() {
     val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         println("exceptionHandler throwable:$throwable")
@@ -509,6 +508,8 @@ private fun launch_coroutine_exception_propagate_root_coroutine_01() {
         } catch (e: Exception) {
             println("handle $e")
         }
+        delay(5)
+        println("after delay 5 ms")
     }
     Thread.sleep(100L)
 }
@@ -524,6 +525,8 @@ private fun launch_coroutine_exception() {
         } catch (e: Exception) {
             println("handle $e")
         }
+        delay(5)
+        println("after delay 5ms")
     }
     Thread.sleep(100L)
 }
