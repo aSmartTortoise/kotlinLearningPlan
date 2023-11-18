@@ -15,6 +15,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
 
 object HttpManager {
+
     val service: ApiInterface by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         build()
     }
@@ -44,8 +45,8 @@ object HttpManager {
             .baseUrl("https://www.wanandroid.com")
             .addConverterFactory(GsonConverterFactory.create())
             .addCallAdapterFactory(ApiResultCallAdapterFactory())
-            .build().run {
-                create(ApiInterface::class.java)
-            }
+            .build()
+            .create(ApiInterface::class.java)
+
     }
 }

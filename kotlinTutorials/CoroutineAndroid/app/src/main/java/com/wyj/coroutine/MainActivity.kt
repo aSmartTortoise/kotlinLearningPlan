@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<View>(R.id.btn_coroutine_practise).setOnClickListener {
             coroutinePractise()
         }
-        val loginViewModel = ViewModelProvider(this).get(LoginViewModel::class.java)
+        val loginViewModel = ViewModelProvider(this)[LoginViewModel::class.java]
         findViewById<View>(R.id.btn_to_login).setOnClickListener {
             /**
              *  账号:手机号码 密码：123456

@@ -13,10 +13,9 @@ import java.nio.charset.StandardCharsets.UTF_8
  * 对于request: 无
  * 对于response:负责解析业务错误（在http status 成功的前提下）
  */
-class BusinessErrorInterceptor :Interceptor{
+class BusinessErrorInterceptor :Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-
-        var response = chain.proceed(chain.request())
+        val response = chain.proceed(chain.request())
         //http status不是成功的情况下，我们不处理
         if (!response.isSuccessful){
             return response
