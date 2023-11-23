@@ -195,6 +195,8 @@ fun main(args: Array<String>) {
     println(numberSet.map { it * 2 })
     println(numberSet.mapIndexed { index, value -> index * value })
     println("-------------------------------")
+
+    val intProgression = 10 downTo 1 step 1
     /**
      * 区间与数列
      */

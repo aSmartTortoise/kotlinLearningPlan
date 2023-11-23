@@ -38,6 +38,9 @@ fun main(args: Array<String>) {
     println(example.observableValue)
     example.observableValue = "not only a tutorial"
     println(example.observableValue)
+    println("---votable property---")
+    example.votableValue = "kotlin votable property."
+    println(example.votableValue)
     println("------将属性值存储在映射中--------")
     val map = mutableMapOf<String, String>("name" to "菜鸟kotlin",
         "url" to "runoob.com")
@@ -64,6 +67,10 @@ class Example {
     }
     var observableValue: String by Delegates.observable("初始值") { property, oldValue, newValue ->
         println("修改的属性$property，旧值为$oldValue， 新值为$newValue")
+    }
+    var votableValue: String by Delegates.vetoable("初始值") { property, oldValue, newValue ->
+        println("修改的属性${property.name}，旧值为$oldValue，新值为$newValue")
+        false
     }
 
     var notNullValue: String by Delegates.notNull<String>()
