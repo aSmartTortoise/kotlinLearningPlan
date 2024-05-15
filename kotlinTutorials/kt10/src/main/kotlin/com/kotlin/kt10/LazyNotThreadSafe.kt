@@ -3,16 +3,16 @@ package com.kotlin.kt10
 /**
  * 基本懒加载
  */
-class LazyNotThreadSaft {
+class LazyNotThreadSafe {
     companion object {
         val instace by lazy (LazyThreadSafetyMode.NONE) {
-            LazyNotThreadSaft()
+            LazyNotThreadSafe()
         }
-        var instance2: LazyNotThreadSaft? = null
+        var instance2: LazyNotThreadSafe? = null
 
-        fun getInstance(): LazyNotThreadSaft {
+        fun getInstance(): LazyNotThreadSafe {
             if (instance2 == null) {
-                instance2 = LazyNotThreadSaft()
+                instance2 = LazyNotThreadSafe()
             }
             return instance2!!
         }
