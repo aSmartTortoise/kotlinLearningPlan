@@ -1,4 +1,24 @@
 
+# 14 关键字与操作符
+## 14.1 參考文章
+[关键字与操作符](https://book.kotlincn.net/text/keyword-reference.html)
+
+## 14.2 修饰符关键字
+<1> actual 表示多平台项目中的一个平台相关实现。
+比如修饰函数，协程源码中runBlock函数签名就使用了修饰符关键字actual。
+```K
+public actual fun <T> runBlocking(context: CoroutineContext, 
+    block: suspend CoroutineScope.() -> T): T {
+}
+
+```
+关于Kotlin协程源码的runBlocking函数的签名部分，参数中的第一个参数为context: CoroutineContext，
+然而在实际代码中调用该函数的地方，可以不用传context参数，是因为源码部分该函数签名部分使用了actual
+修饰符关键字。
+参考文章为[Kotlin 函数的默认参数没有出现在签名中 runBlocking 默认参数在源代码中未定义？默认参数的小坑 ](https://www.cnblogs.com/MadDonkey/p/16163499.html)
+
+<2> expect 将一个声明标记为平台相关，并期待在平台模块中实现。
+
 
 # 15 委托
 ## 15.1 參考文章
