@@ -1,3 +1,35 @@
+# 1 类型
+## 1.1 字符串
+### 参考文章
+1 [字符串](https://book.kotlincn.net/text/strings.html) 
+
+### 1.1.1 转义字符串
+转义字符串可以包含转义字符。 以下是转义字符串的一个示例：
+```kotlin
+val s = "Hello, world!\n"
+```
+转义采用传统的反斜杠（\）方式。 所支持的转义序列请参见 [字符](https://book.kotlincn.net/text/characters.html) 页。
+
+### 1.1.2 多行字符串
+多行字符串可以包含换行以及任意文本。 它使用三个引号（"""）分界符括起来，内部没有转义并且可以
+包含换行以及任何其他字符：
+
+```kotlin
+val text = """
+    for (c in "foo")
+        print(c)
+"""
+```
+如需删掉多行字符串中的前导空格，请使用 trimMargin() 函数：
+```kotlin
+val text = """
+|Tell me and I forget.
+|Teach me and I remember.
+|Involve me and I learn.
+|(Benjamin Franklin)
+    """.trimMargin()
+```
+默认以竖线 | 作为边界前缀，但你可以选择其他字符并作为参数传入，比如 trimMargin(">")。
 
 # 14 关键字与操作符
 ## 14.1 參考文章
