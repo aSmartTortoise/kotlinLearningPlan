@@ -65,7 +65,7 @@ object RetrofitHelper {
             readTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
             writeTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
             retryOnConnectionFailure(true) // 错误重连
-            // cookieJar(CookieManager())
+//             cookieJar(CookieManager())
         }
         return builder.build()
     }

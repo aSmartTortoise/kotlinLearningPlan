@@ -108,15 +108,19 @@ object DisplayManager {
             nonCompatDensity = appDisplayMetrics.density
             nonCompatScaledDensity = appDisplayMetrics.scaledDensity
             app.registerComponentCallbacks(object : ComponentCallbacks {
-                override fun onConfigurationChanged(newConfig: Configuration?) {
+
+
+                override fun onConfigurationChanged(newConfig: Configuration) {
                     Log.d("DisplayManager", "onConfigurationChanged: wyj")
-                    if (newConfig != null && newConfig.fontScale > 0) {
+                    if (newConfig.fontScale > 0) {
                         nonCompatScaledDensity = app.resources.displayMetrics.scaledDensity
                     }
                 }
 
                 override fun onLowMemory() {
                 }
+
+
 
             })
         }

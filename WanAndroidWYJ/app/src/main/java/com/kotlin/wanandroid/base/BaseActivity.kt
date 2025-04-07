@@ -196,7 +196,6 @@ abstract class BaseActivity: AppCompatActivity() {
             EventBus.getDefault().unregister(this)
         }
         CommonUtil.fixInputMethodManagerLeak(this)
-        WanAndroidApplication.getRefWatcher(this)?.watch(this)
     }
 
     override fun finish() {

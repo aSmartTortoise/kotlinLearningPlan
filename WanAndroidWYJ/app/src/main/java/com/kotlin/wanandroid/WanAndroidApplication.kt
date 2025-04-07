@@ -21,20 +21,16 @@ import com.kotlin.wanandroid.utils.SettingUtil
 import com.orhanobut.logger.AndroidLogAdapter
 import com.orhanobut.logger.Logger
 import com.orhanobut.logger.PrettyFormatStrategy
-import com.squareup.leakcanary.LeakCanary
-import com.squareup.leakcanary.RefWatcher
 import com.tencent.bugly.Bugly
 import com.tencent.bugly.beta.Beta
 import com.tencent.bugly.beta.upgrade.UpgradeStateListener
 import com.tencent.bugly.crashreport.CrashReport
-import org.jetbrains.anko.displayManager
 import org.litepal.LitePal
 import java.util.*
 import kotlin.properties.Delegates
 
 class WanAndroidApplication: MultiDexApplication() {
 
-    private var refWatcher: RefWatcher? = null
 
     private val mActivityLifecycleCallbacks = object: ActivityLifecycleCallbacks {
         override fun onActivityPaused(activity: Activity) {
@@ -93,10 +89,6 @@ class WanAndroidApplication: MultiDexApplication() {
 
         lateinit var instance: WanAndroidApplication
 
-        fun getRefWatcher(context: Context): RefWatcher? {
-            val app = context.applicationContext as WanAndroidApplication
-            return app.refWatcher
-        }
 
         var userInfo: UserInfoBody? = null
     }
@@ -113,7 +105,6 @@ class WanAndroidApplication: MultiDexApplication() {
         Trace.beginSection("myApplicationOnCreate")
         instance = this
         context = applicationContext
-        refWatcher = setUpLeakCanary()
         initConfig()
         DisplayManager.init(this)
         registerActivityLifecycleCallbacks(mActivityLifecycleCallbacks)
@@ -129,11 +120,6 @@ class WanAndroidApplication: MultiDexApplication() {
         Trace.endSection()
     }
 
-    private fun setUpLeakCanary(): RefWatcher {
-        return if (LeakCanary.isInAnalyzerProcess(this)) {
-            RefWatcher.DISABLED
-        } else LeakCanary.install(this)
-    }
 
     private fun initConfig() {
         val formatStrategy = PrettyFormatStrategy.newBuilder()

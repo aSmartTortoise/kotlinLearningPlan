@@ -89,6 +89,5 @@ abstract class BaseFragment : Fragment() {
         if (useEventBus()) {
             EventBus.getDefault().unregister(this)
         }
-        activity?.let { WanAndroidApplication.getRefWatcher(it)?.watch(it) }
     }
 }

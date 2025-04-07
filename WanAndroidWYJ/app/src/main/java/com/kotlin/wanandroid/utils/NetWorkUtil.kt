@@ -1,5 +1,6 @@
 package com.kotlin.wanandroid.utils
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
@@ -145,15 +146,16 @@ class NetWorkUtil {
         /**
          * is wifi on
          */
+        @SuppressLint("MissingPermission")
         @JvmStatic
         fun isWifiEnabled(context: Context): Boolean {
             val mgrConn = context
                     .getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val mgrTel = context
                     .getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            return mgrConn.activeNetworkInfo != null && mgrConn
-                    .activeNetworkInfo.state == NetworkInfo.State.CONNECTED || mgrTel
-                    .networkType == TelephonyManager.NETWORK_TYPE_UMTS
+            return mgrConn.activeNetworkInfo != null &&
+                    mgrConn.activeNetworkInfo!!.state == NetworkInfo.State.CONNECTED ||
+                    mgrTel.networkType == TelephonyManager.NETWORK_TYPE_UMTS
         }
 
         /**
