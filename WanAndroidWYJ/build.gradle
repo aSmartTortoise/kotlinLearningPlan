@@ -5,6 +5,8 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        // 解决 Could not find org.jetbrains.anko:anko:. Searched in the following locations: 类似的编译时
+        // 下载sdk的异常。
         maven {
             url 'https://maven.aliyun.com/repository/google/'
         }
