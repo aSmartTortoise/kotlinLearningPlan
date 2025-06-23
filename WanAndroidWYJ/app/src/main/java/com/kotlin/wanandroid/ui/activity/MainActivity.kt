@@ -1,11 +1,13 @@
 package com.kotlin.wanandroid.ui.activity
 
+import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.net.TrafficStats
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.Trace
 import android.util.Log
 import android.view.Gravity
 import android.widget.ImageView
@@ -319,5 +321,22 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
 
 
 
+    @SuppressLint("UnclosedTrace")
+    override fun onResume() {
+        super.onResume()
+        Trace.beginSection("Main onResume")
+        Log.i(TAG, "onResume")
+        Trace.endSection()
+    }
+
+    @SuppressLint("UnclosedTrace")
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            Trace.beginSection("Main focus true")
+            Log.i(TAG, "onWindowFocusChanged: focus true.")
+            Trace.endSection()
+        }
+    }
 
 }

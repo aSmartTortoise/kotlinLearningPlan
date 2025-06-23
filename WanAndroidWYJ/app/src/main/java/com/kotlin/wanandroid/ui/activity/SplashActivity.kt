@@ -1,14 +1,17 @@
 package com.kotlin.wanandroid.ui.activity
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.Trace
 import androidx.appcompat.app.AppCompatActivity
 
+@SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
     companion object {
         const val TAG = "SplashActivity"
     }
+    @SuppressLint("UnclosedTrace")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Trace.beginSection("splashOnCreate")

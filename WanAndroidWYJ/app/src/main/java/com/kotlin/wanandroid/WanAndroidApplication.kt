@@ -1,5 +1,6 @@
 package com.kotlin.wanandroid
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Application
 import android.content.Context
@@ -100,23 +101,27 @@ class WanAndroidApplication: MultiDexApplication() {
             .resetTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
     }
 
+    @SuppressLint("UnclosedTrace")
     override fun onCreate() {
         super.onCreate()
         Trace.beginSection("myApplicationOnCreate")
         instance = this
         context = applicationContext
-        initConfig()
-        DisplayManager.init(this)
-        registerActivityLifecycleCallbacks(mActivityLifecycleCallbacks)
-        initTheme()
-        initLitePal()
-        initBugly()
-        TimeMonitorManager
-            .get()
-            .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
-            .recordingTimeTag("Application-onCreate")
-        val channelName = CommonUtil.getChannelName(this)
-        Log.d(TAG, "onCreate: wyj channelName:$channelName")
+        Thread {
+            initConfig()
+            DisplayManager.init(this)
+            registerActivityLifecycleCallbacks(mActivityLifecycleCallbacks)
+            initTheme()
+            initLitePal()
+            initBugly()
+            TimeMonitorManager
+                .get()
+                .getTimeMonitor(TimeMonitorConfig.TIME_MONITOR_ID_APPLICATION_START)
+                .recordingTimeTag("Application-onCreate")
+            val channelName = CommonUtil.getChannelName(this)
+            Log.d(TAG, "onCreate: wyj channelName:$channelName")
+        }.start()
+
         Trace.endSection()
     }
 

@@ -53,6 +53,10 @@ abstract class BaseActivity: AppCompatActivity() {
         initListener()
     }
 
+    override fun onContentChanged() {
+        super.onContentChanged()
+    }
+
     protected abstract fun attachLayoutRes(): Int
 
     open fun useEventBus(): Boolean = true
