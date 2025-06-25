@@ -4,8 +4,6 @@ import android.annotation.SuppressLint
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.net.TrafficStats
-import android.os.AsyncTask
 import android.os.Bundle
 import android.os.Trace
 import android.util.Log
@@ -42,14 +40,18 @@ import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
 class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(), MainContract.View {
-    private val BOTTOM_INDEX: String = "bottom_index"
-    private val TAG = "MainActivity"
 
-    private val FRAGMENT_HOME = 0x01
-    private val FRAGMENT_SQUARE = 0x02
-    private val FRAGMENT_WECHAT = 0x03
-    private val FRAGMENT_SYSTEM = 0x04
-    private val FRAGMENT_PROJECT = 0x05
+
+    companion object {
+        private const val BOTTOM_INDEX = "bottom_index"
+        private const val TAG = "MainActivity"
+        private const val FRAGMENT_HOME = 0x01
+        private const val FRAGMENT_SQUARE = 0x02
+        private const val FRAGMENT_WECHAT = 0x03
+        private const val FRAGMENT_SYSTEM = 0x04
+        private const val FRAGMENT_PROJECT = 0x05
+
+    }
 
     private var mIndex = FRAGMENT_HOME
     private var mHomeFragment: HomeFragment? = null
@@ -293,7 +295,7 @@ class MainActivity : BaseMVPActivity<MainContract.View, MainContract.Presenter>(
     }
 
     private fun showFragment(index: Int) {
-        var transaction = supportFragmentManager.beginTransaction()
+        val transaction = supportFragmentManager.beginTransaction()
         hideFragments(transaction)
         mIndex = index
         when(index) {

@@ -1,5 +1,6 @@
 package com.cxz.wanandroid.http.interceptor
 
+import android.util.Log
 import com.cxz.wanandroid.constant.HttpConstant
 import com.kotlin.wanandroid.constant.Constant
 import com.kotlin.wanandroid.utils.Preference
@@ -12,6 +13,10 @@ import okhttp3.Response
  * @desc HeaderInterceptor: 设置请求头
  */
 class HeaderInterceptor : Interceptor {
+
+    companion object {
+        private const val TAG = "HeaderInterceptor"
+    }
 
     /**
      * token
@@ -41,8 +46,15 @@ class HeaderInterceptor : Interceptor {
                 builder.addHeader(HttpConstant.COOKIE_NAME, cookie)
             }
         }
+//        Log.d(TAG, "intercept: request url:${url}")
+//        Log.d(TAG, "intercept: request cacheControl:${request.cacheControl().toString()}")
+        val response = chain.proceed(builder.build())
 
-        return chain.proceed(builder.build())
+        val cacheControl = response.cacheControl().toString()
+//        Log.d(TAG, "intercept: response headers:${response.headers().toString()}")
+//        Log.d(TAG, "intercept: response cacheControl:$cacheControl")
+//        Log.d(TAG, "intercept: response code:${response.code()}")
+        return response
     }
 
 }

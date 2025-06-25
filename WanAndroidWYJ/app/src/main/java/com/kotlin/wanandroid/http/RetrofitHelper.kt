@@ -8,6 +8,8 @@ import com.cxz.wanandroid.http.interceptor.SaveCookieInterceptor
 import com.kotlin.wanandroid.BuildConfig
 import com.kotlin.wanandroid.WanAndroidApplication
 import com.kotlin.wanandroid.constant.Constant
+import com.kotlin.wanandroid.http.interceptor.CacheControlInterceptor
+import com.kotlin.wanandroid.http.interceptor.CacheNetworkInterceptor
 import okhttp3.Cache
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -24,9 +26,9 @@ object RetrofitHelper {
 
     private var retrofit: Retrofit? = null
 
-    val service: ApiService by lazy { getRetrofit()!!.create(ApiService::class.java) }
+    val service: ApiService by lazy { getRetrofit().create(ApiService::class.java) }
 
-    private fun getRetrofit(): Retrofit? {
+    private fun getRetrofit(): Retrofit {
         if (retrofit == null) {
             retrofit = Retrofit.Builder()
                     .baseUrl(Constant.BASE_URL)  // baseUrl
@@ -36,14 +38,13 @@ object RetrofitHelper {
                     .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                     .build()
         }
-        return retrofit
+        return retrofit!!
     }
 
     /**
      * 获取 OkHttpClient
      */
     private fun getOkHttpClient(): OkHttpClient {
-        val builder = OkHttpClient().newBuilder()
         val httpLoggingInterceptor = HttpLoggingInterceptor()
         if (BuildConfig.DEBUG) {
             httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -54,20 +55,21 @@ object RetrofitHelper {
         //设置 请求的缓存的大小跟位置
         val cacheFile = File(WanAndroidApplication.context.cacheDir, "cache")
         val cache = Cache(cacheFile, HttpConstant.MAX_CACHE_SIZE)
+        return OkHttpClient.Builder()
+            .addInterceptor(CacheControlInterceptor())
+            .addInterceptor(httpLoggingInterceptor)
+            .addInterceptor(HeaderInterceptor())
+            .addInterceptor(SaveCookieInterceptor())
+            .addNetworkInterceptor(CacheNetworkInterceptor())
+            .cache(cache)  //添加缓存
+            .connectTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+            .readTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+            .writeTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true) // 重试
+            .build()
 
-        builder.run {
-            addInterceptor(httpLoggingInterceptor)
-            addInterceptor(HeaderInterceptor())
-            addInterceptor(SaveCookieInterceptor())
-            addInterceptor(CacheInterceptor())
-            cache(cache)  //添加缓存
-            connectTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-            readTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-            writeTimeout(HttpConstant.DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-            retryOnConnectionFailure(true) // 错误重连
 //             cookieJar(CookieManager())
-        }
-        return builder.build()
+
     }
 
 }

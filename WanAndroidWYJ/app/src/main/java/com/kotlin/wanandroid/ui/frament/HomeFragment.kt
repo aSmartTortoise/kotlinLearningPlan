@@ -30,6 +30,7 @@ import com.kotlin.wanandroid.utils.ImageLoader
 import com.kotlin.wanandroid.utils.NetWorkUtil
 import com.kotlin.wanandroid.widget.SpaceItemDecoration
 import io.reactivex.Observable
+import kotlinx.android.synthetic.main.fragment_home.btn_load
 import kotlinx.android.synthetic.main.fragment_refresh_layout.*
 import kotlinx.android.synthetic.main.item_home_banner.view.*
 
@@ -124,7 +125,7 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
             }
         }
 
-    override fun attachLayoutRes() = R.layout.fragment_refresh_layout
+    override fun attachLayoutRes() = R.layout.fragment_home
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -157,6 +158,12 @@ class HomeFragment : BaseMVPFragment<HomeContract.View, HomeContract.Presenter>(
             onItemChildClickListener = mOnItemChildClickListener
             addHeaderView(mBannerView)
         }
+
+        btn_load.setOnClickListener {
+            Log.d(TAG, "initView: reload network data.")
+            mPresenter?.requestArticles(0)
+        }
+
     }
 
     override fun lazyLoad() {
