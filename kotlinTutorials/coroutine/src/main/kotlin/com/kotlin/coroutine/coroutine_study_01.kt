@@ -2,18 +2,19 @@ package com.kotlin.coroutine
 
 import kotlinx.coroutines.*
 
+
 fun main() {
 //    launchFunctionStudy0()
 
 //    launchFunctionStudy01()
 //    withContextFunctionStudy0()
-//    suspendFuctionSuspendResumeStudy()
+//    suspendFunctionSuspendResumeStudy()
 //    suspendCoroutineNotBlockThreadStudy()
 //    coroutineRunThreadWhenResume()
 
 //    suspendFunctionStudy()
 
-//    yieldStudy()
+    yieldStudy()
 }
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -38,6 +39,7 @@ private fun yieldStudy() {
 /**
  *  挂起函数可能会挂起协程，但是不会阻塞线程。
  */
+@OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 private fun suspendFunctionStudy() {
     val coroutineDispatcher = newSingleThreadContext("ctx")
     GlobalScope.launch(coroutineDispatcher) {
@@ -60,18 +62,18 @@ private fun suspendFunctionStudy() {
 private fun coroutineRunThreadWhenResume() {
     runBlocking {
         launch {
-            println("com.kotlin.coroutine.practise.main runBlocking, i am working in thread ${Thread.currentThread().name}")
+            println("coroutineRunThreadWhenResume default, i am working in thread ${Thread.currentThread().name}")
             delay(300L)
-            println("com.kotlin.coroutine.practise.main runBlocking, after delay in thread ${Thread.currentThread().name}")
+            println("coroutineRunThreadWhenResume default, after delay in thread ${Thread.currentThread().name}")
         }
 
         launch(Dispatchers.Unconfined) {
-            println("unconfined, i am working in thread ${Thread.currentThread().name}")
+            println("coroutineRunThreadWhenResume, unconfined, i am working in thread ${Thread.currentThread().name}")
             delay(300L)
-            println("unconfined, after delay in thread ${Thread.currentThread().name}")
+            println("coroutineRunThreadWhenResume, unconfined, after delay in thread ${Thread.currentThread().name}")
         }
     }
-    println(" runBlocking 创建协程")
+    println("coroutineRunThreadWhenResume end.")
 }
 
 /**
@@ -90,7 +92,7 @@ private fun suspendCoroutineNotBlockThreadStudy() {
     println("com.kotlin.coroutine.practise.main thread end")
 }
 
-private fun suspendFuctionSuspendResumeStudy() {
+private fun suspendFunctionSuspendResumeStudy() {
     runBlocking {
         //await是挂起函数，当前协程的执行逻辑卡在第一个分支，第一种状态，当async的协程执行完成后
         //才会恢复当前runBlocking协程，才会切换到下一个分支
@@ -163,5 +165,5 @@ private fun launchFunctionStudy0() {
         println("Dispatchers.io context:$coroutineContext, thread name is:${Thread.currentThread().name}")
     }
     Thread.sleep(1_000)
-    println("com.kotlin.coroutine.practise.main, end~")
+    println("launchFunctionStudy0, end~")
 }

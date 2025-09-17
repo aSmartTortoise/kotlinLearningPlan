@@ -1,12 +1,32 @@
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+package com.kotlin.coroutine
+
+import kotlinx.coroutines.*
 
 /**
  *  https://www.jianshu.com/p/2857993af646
  */
 fun main(args: Array<String>): Unit = runBlocking {
+//    jobCancelStudy()
+    jobCancelDebug()
+}
+
+
+private fun CoroutineScope.jobCancelStudy() {
+    val jobParent = launch {
+        val jobChild = launch {
+            delay(600_1000)
+        }
+        delay(600_000)
+    }
+
+    launch {
+        if (jobParent.isActive) {
+            jobParent.cancel()
+        }
+    }
+}
+
+private suspend fun CoroutineScope.jobCancelDebug() {
     val job1 = launch(Dispatchers.Default) {
         repeat(5) {
             println("job1 sleep ${it + 1} times")
@@ -15,6 +35,7 @@ fun main(args: Array<String>): Unit = runBlocking {
         }
     }
     delay(700)
+    println("job1 cancel.")
     job1.cancel()
     val job2 = launch(Dispatchers.Default) {
         var nextPrintTime = 0L
@@ -30,5 +51,6 @@ fun main(args: Array<String>): Unit = runBlocking {
         }
     }
     delay(700)
+    println("job2 cancel.")
     job2.cancel()
 }

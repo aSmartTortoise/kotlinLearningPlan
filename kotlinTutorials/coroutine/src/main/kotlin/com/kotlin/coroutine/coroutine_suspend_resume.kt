@@ -1,6 +1,6 @@
 import kotlinx.coroutines.*
 
-fun main(args: Array<String>): Unit = runBlocking {
+fun main(args: Array<String>) = runBlocking<Unit> {
     launch(Dispatchers.Unconfined) {
         println("${Thread.currentThread().name} : launch start")
         async(Dispatchers.Default) {

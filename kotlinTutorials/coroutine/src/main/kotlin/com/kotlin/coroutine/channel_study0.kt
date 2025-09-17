@@ -60,7 +60,7 @@ suspend fun player(name: String, table: Channel<Ball>) {
     }
 }
 fun main() {
-//    channelStudy01()
+    channelStudy01()
 //    channelStudy02Close()
 //    channelStudy03ProduceConsume()
 //    channelStudy04()

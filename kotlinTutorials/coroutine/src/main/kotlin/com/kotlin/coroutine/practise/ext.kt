@@ -13,7 +13,7 @@ import kotlin.coroutines.suspendCoroutine
 fun main(args: Array<String>): Unit = runBlocking {
 
 }
-suspend fun Call.await(): ResponseBody = suspendCancellableCoroutine { cont ->
+suspend fun Call.await2(): ResponseBody = suspendCancellableCoroutine { cont ->
     enqueue(object : Callback {
         override fun onFailure(call: Call, e: IOException) {
             cont.resumeWithException(e)
@@ -28,4 +28,21 @@ suspend fun Call.await(): ResponseBody = suspendCancellableCoroutine { cont ->
         }
     })
 
+}
+
+suspend fun Call.await1(): ResponseBody = suspendCoroutine { cont ->
+    enqueue(object : Callback {
+        override fun onFailure(call: Call, e: IOException) {
+            cont.resumeWithException(e)
+        }
+
+        override fun onResponse(call: Call, response: Response) {
+            if (response.isSuccessful) {
+                cont.resume(response.body!!)
+            } else {
+                cont.resumeWithException(IOException("网络请求错误。"))
+            }
+        }
+
+    })
 }
